@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Cloud - Ferretería COP</title>
+    <title>Inventario Cloud COP - Ferretería</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --accent: #2980b9; }
+        :root { --primary: #2c3e50; --success: #27ae60; --excel: #1f7244; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 0; color: #333; }
         
-        /* PANTALLA DE ACCESO */
+        /* Bloqueo de Seguridad */
         #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 10000; }
         .login-card { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .login-card input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
+        .login-card input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; width: 100%; margin-bottom: 15px; font-size: 16px; }
 
-        /* CONTENIDO PRINCIPAL */
+        /* Contenido */
         #contenido-sistema { display: none; padding: 10px; }
         .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .nav-menu a, .btn-salir { color: white; text-decoration: none; font-weight: bold; padding: 10px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; border: none; cursor: pointer; }
@@ -24,38 +25,38 @@
 
         .container { max-width: 1200px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* FORMULARIO ADAPTABLE */
+        /* Formulario Adaptable */
         .form-inv { display: grid; grid-template-columns: 1fr; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
-        @media (min-width: 600px) { .form-inv { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); } }
+        @media (min-width: 600px) { .form-inv { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
         .form-inv div { display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; margin-bottom: 3px; color: var(--primary); }
-        input { padding: 10px; border: 1px solid #999; border-radius: 6px; font-size: 14px; color: #000; font-weight: 500; }
+        label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--primary); margin-bottom: 4px; }
+        input { padding: 10px; border: 1px solid #999; border-radius: 6px; font-size: 14px; color: #000; font-weight: 600; }
 
-        /* TABLA DE PRODUCTOS */
-        .tabla-scroll { overflow-x: auto; margin-top: 10px; border-radius: 8px; border: 1px solid #eee; }
+        /* Tabla Adaptable */
+        .tabla-scroll { overflow-x: auto; margin-top: 10px; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; min-width: 850px; }
-        th { background: #f1f1f1; padding: 12px; font-size: 12px; border-bottom: 2px solid #ddd; }
-        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; font-weight: 600; color: #000; }
+        th { background: #eee; padding: 12px; font-size: 12px; border: 1px solid #ddd; }
+        td { padding: 12px; border: 1px solid #eee; text-align: center; font-size: 14px; font-weight: 700; color: #000; }
         
-        .col-compra { background: #fff3e0 !important; color: #e65100 !important; }
-        .col-venta { background: #e8f5e9 !important; color: #2e7d32 !important; }
+        .col-compra { background: #fff3e0 !important; color: #e65100; }
+        .col-venta { background: #e8f5e9 !important; color: #2e7d32; }
 
-        /* CAJAS DE DINERO (RESUMEN) */
+        /* Cajas de Totales */
         .resumen-caja { margin-top: 20px; padding: 20px; background: var(--primary); color: white; border-radius: 10px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
         @media (min-width: 600px) { .resumen-caja { flex-direction: row; justify-content: space-around; } }
-        .resumen-item p { margin: 0; font-size: 0.9em; opacity: 0.9; }
-        .resumen-item span { display: block; font-size: 1.6em; font-weight: bold; margin-top: 5px; }
+        .resumen-item span { display: block; font-size: 1.8em; font-weight: bold; margin-top: 5px; color: #fff; }
+
+        .btn-excel { background: var(--excel); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px; width: 100%; max-width: 250px; }
     </style>
 </head>
 <body>
 
 <div id="bloqueo">
     <div class="login-card">
-        <h2 style="color: var(--primary)">🔐 Acceso Privado</h2>
-        <p style="margin-bottom:20px; font-size:14px; color:#666;">Ingresa con el correo autorizado</p>
+        <h2>🔒 Acceso Inventario</h2>
         <input type="email" id="email-login" placeholder="Correo electrónico">
         <input type="password" id="pass-login" placeholder="Contraseña">
-        <button onclick="iniciarSesion()" style="background:var(--primary); color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px;">ENTRAR AL SISTEMA</button>
+        <button onclick="iniciarSesion()" style="background:var(--primary); color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; cursor:pointer;">ENTRAR AL SISTEMA</button>
     </div>
 </div>
 
@@ -63,33 +64,33 @@
     <div class="nav-menu">
         <a href="index.html">📦 INVENTARIO</a>
         <a href="factura.html">📄 FACTURACIÓN</a>
-        <button class="btn-salir" onclick="cerrarSesion()">CERRAR SESIÓN</button>
+        <button class="btn-salir" onclick="cerrarSesion()">SALIR</button>
     </div>
 
     <div class="container">
-        <h3 style="margin-top:0">📊 Control de Inventario (COP)</h3>
+        <button class="btn-excel" onclick="exportarExcel()">📊 DESCARGAR EXCEL</button>
         
         <div class="form-inv">
-            <div><label>Nombre del Producto</label><input type="text" id="n"></div>
-            <div><label>Cantidad (Stock)</label><input type="number" id="c"></div>
-            <div><label>Compra Total ($)</label><input type="number" id="pt" placeholder="Lo que pagaste"></div>
-            <div><label>Venta Unidad ($)</label><input type="number" id="pv" placeholder="Precio al público"></div>
-            <button onclick="guardarFirebase()" style="background:var(--success); color:white; font-weight:bold; border:none; border-radius:6px; cursor:pointer; height:42px; margin-top:16px;">+ GUARDAR</button>
+            <div><label>Producto</label><input type="text" id="n"></div>
+            <div><label>Stock</label><input type="number" id="c"></div>
+            <div><label>Compra Total ($)</label><input type="number" id="pt"></div>
+            <div><label>Venta Unidad ($)</label><input type="number" id="pv"></div>
+            <button onclick="guardarFirebase()" style="background:var(--success); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; height:40px; margin-top:15px;">+ GUARDAR</button>
         </div>
 
-        <input type="text" id="bus" placeholder="🔍 Buscar producto en Girardot..." onkeyup="cargarDatos()" style="width:100%; padding:14px; margin-bottom:15px; border-radius:8px; border:2px solid #ddd; box-sizing:border-box; font-size:16px;">
+        <input type="text" id="bus" placeholder="🔍 Buscar producto en la nube..." onkeyup="cargarDatos()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:2px solid #ddd; box-sizing:border-box;">
 
         <div class="tabla-scroll">
-            <table>
+            <table id="tabla-datos">
                 <thead>
                     <tr>
-                        <th>PRODUCTO</th>
-                        <th>STOCK</th>
-                        <th class="col-compra">INVERSIÓN</th>
-                        <th class="col-compra">COSTO UNIT.</th>
-                        <th class="col-venta">VENTA UNIT.</th>
-                        <th>GANANCIA X UND</th>
-                        <th>ACCION</th>
+                        <th>Producto</th>
+                        <th>Stock</th>
+                        <th class="col-compra">Inversión</th>
+                        <th class="col-compra">Costo Und</th>
+                        <th class="col-venta">Venta Und</th>
+                        <th>Margen Ganancia</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody id="lista"></tbody>
@@ -97,19 +98,14 @@
         </div>
 
         <div class="resumen-caja">
-            <div class="resumen-item">
-                <p>Inversión en Mercancía</p>
-                <span id="tot-inv">$ 0</span>
-            </div>
-            <div class="resumen-item">
-                <p>Ganancia Total Proyectada</p>
-                <span id="tot-gan">$ 0</span>
-            </div>
+            <div class="resumen-item">Inversión Total (Mercancía) <span id="tot-inv">$ 0</span></div>
+            <div class="resumen-item">Ganancia Total Proyectada <span id="tot-gan">$ 0</span></div>
         </div>
     </div>
 </div>
 
 <script>
+    // TUS LLAVES DE FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyBbsO9WwtptjDTCetZOauYVPCXCzJbZB30",
       authDomain: "ferreteria-distri-app-6d960.firebaseapp.com",
@@ -122,16 +118,9 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-    // Formato de Moneda Colombiana (Sin centavos)
-    const formatoCOP = new Intl.NumberFormat('es-CO', { 
-        style: 'currency', 
-        currency: 'COP', 
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(user => {
         if (user) {
             document.getElementById('bloqueo').style.display = 'none';
             document.getElementById('contenido-sistema').style.display = 'block';
@@ -145,8 +134,7 @@
     async function iniciarSesion() {
         const e = document.getElementById('email-login').value;
         const p = document.getElementById('pass-login').value;
-        try { await auth.signInWithEmailAndPassword(e, p); } 
-        catch (err) { alert("Usuario o contraseña incorrecta"); }
+        try { await auth.signInWithEmailAndPassword(e, p); } catch(err) { alert("Usuario o clave incorrecta"); }
     }
 
     function cerrarSesion() { auth.signOut(); }
@@ -156,7 +144,7 @@
         const c = parseInt(document.getElementById('c').value);
         const pt = parseFloat(document.getElementById('pt').value);
         const pv = parseFloat(document.getElementById('pv').value);
-
+        
         if(n && c > 0) {
             await db.collection("productos").add({
                 nombre: n, 
@@ -167,40 +155,53 @@
                 fecha: new Date().getTime()
             });
             document.querySelectorAll('.form-inv input').forEach(i => i.value = "");
-        } else { alert("Debes poner el Nombre y la Cantidad."); }
+        } else { alert("Completa los datos"); }
     }
 
     function cargarDatos() {
         const bus = document.getElementById('bus').value.toLowerCase();
-        db.collection("productos").orderBy("fecha", "desc").onSnapshot((snap) => {
+        db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
             const lista = document.getElementById('lista');
             lista.innerHTML = "";
-            let tInv = 0; let tGan = 0;
+            let ti = 0; let tg = 0;
 
-            snap.forEach((doc) => {
+            snap.forEach(doc => {
                 const p = doc.data();
                 if(p.nombre.toLowerCase().includes(bus)) {
-                    const gUn = p.p_v - p.p_un;
-                    tInv += p.p_total;
-                    tGan += (gUn * p.cant);
+                    const margenUn = p.p_v - p.p_un;
+                    ti += p.p_total;
+                    tg += (margenUn * p.cant);
 
-                    lista.innerHTML += `<tr>
-                        <td style="text-align:left"><b>${p.nombre}</b></td>
-                        <td><b>${p.cant}</b></td>
-                        <td class="col-compra">${formatoCOP.format(p.p_total)}</td>
-                        <td class="col-compra">${formatoCOP.format(p.p_un)}</td>
-                        <td class="col-venta"><b>${formatoCOP.format(p.p_v)}</b></td>
-                        <td style="color:green"><b>${formatoCOP.format(gUn)}</b></td>
-                        <td><button onclick="borrar('${doc.id}')" style="background:var(--danger); border:none; color:white; padding:8px; border-radius:5px; cursor:pointer">🗑️</button></td>
-                    </tr>`;
+                    lista.innerHTML += `
+                        <tr>
+                            <td style="text-align:left"><b>${p.nombre}</b></td>
+                            <td>${p.cant}</td>
+                            <td class="col-compra">${formatoCOP.format(p.p_total)}</td>
+                            <td class="col-compra">${formatoCOP.format(p.p_un)}</td>
+                            <td class="col-venta"><b>${formatoCOP.format(p.p_v)}</b></td>
+                            <td style="color:green">${formatoCOP.format(margenUn)}</td>
+                            <td><button onclick="borrar('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:6px; border-radius:4px; cursor:pointer">🗑️</button></td>
+                        </tr>`;
                 }
             });
-            document.getElementById('tot-inv').innerText = formatoCOP.format(tInv);
-            document.getElementById('tot-gan').innerText = formatoCOP.format(tGan);
+            document.getElementById('tot-inv').innerText = formatoCOP.format(ti);
+            document.getElementById('tot-gan').innerText = formatoCOP.format(tg);
         });
     }
 
-    async function borrar(id) { if(confirm("¿Seguro que quieres eliminar este producto de la nube?")) await db.collection("productos").doc(id).delete(); }
+    function exportarExcel() {
+        const tabla = document.getElementById('tabla-datos');
+        const hoja = XLSX.utils.table_to_sheet(tabla);
+        const libro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(libro, hoja, "Inventario_Ferreteria");
+        XLSX.writeFile(libro, "Reporte_Inventario_Cloud.xlsx");
+    }
+
+    async function borrar(id) {
+        if(confirm("¿Seguro que quieres eliminar este producto de la nube?")) {
+            await db.collection("productos").doc(id).delete();
+        }
+    }
 </script>
 </body>
 </html>
