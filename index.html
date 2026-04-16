@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Profesional COP - Edición</title>
+    <title>Inventario Profesional COP</title>
     <style>
         :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; --edit: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
@@ -13,24 +13,31 @@
 
         #contenido-sistema { display: none; }
         .nav-menu { background: var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
+        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 10px 20px; border-radius: 5px; background: rgba(255,255,255,0.2); }
         
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         
         .form-inv { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
         .form-inv div { display: flex; flex-direction: column; }
-        label { font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        label { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 4px; }
+        input { padding: 10px; border: 1px solid #999; border-radius: 5px; color: #000; font-weight: 500; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: var(--primary); color: white; padding: 12px; border: 1px solid #34495e; }
-        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+        /* MEJORA DE TABLA - COLORES MÁS FUERTES */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+        th { background: var(--primary); color: white; padding: 14px; border: 1px solid #1a252f; text-transform: uppercase; }
+        td { padding: 12px; border: 1px solid #ddd; text-align: center; color: #000; font-weight: 500; }
         
-        .col-compra { background-color: #fff9f0; } 
-        .col-venta { background-color: #f0fff4; }
+        /* Celdas de Compra (Naranja suave con texto negro) */
+        .col-compra-header { background-color: #fbdbc3 !important; color: #5d4037 !important; font-weight: 900; }
+        .col-compra-celda { background-color: #fff4ed; }
+
+        /* Celdas de Venta (Verde suave con texto negro) */
+        .col-venta-header { background-color: #c8e6c9 !important; color: #1b5e20 !important; font-weight: 900; }
+        .col-venta-celda { background-color: #f1f8e9; }
         
-        .btn-accion { border: none; color: white; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 12px; margin: 0 2px; }
-        .total-resumen { margin-top: 20px; padding: 15px; background: var(--primary); color: white; border-radius: 8px; display: flex; justify-content: space-around; font-size: 1.1em; }
+        .btn-accion { border: none; color: white; padding: 8px; border-radius: 4px; cursor: pointer; margin: 0 3px; font-size: 16px; }
+        .total-resumen { margin-top: 20px; padding: 20px; background: var(--primary); color: white; border-radius: 8px; display: flex; justify-content: space-around; font-size: 1.3em; font-weight: bold; }
+        .ganancia-texto { color: #27ae60; font-weight: 900; font-size: 1.1em; }
     </style>
 </head>
 <body>
@@ -39,7 +46,7 @@
     <div class="login-card">
         <h2>🔒 Seguridad Ferretería</h2>
         <input type="password" id="clave-input" placeholder="Clave del sistema">
-        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:10px; margin-top:10px; width:100%; cursor:pointer; border-radius:5px;">Entrar</button>
+        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:12px; margin-top:10px; width:100%; cursor:pointer; border-radius:5px; font-weight:bold;">INGRESAR</button>
     </div>
 </div>
 
@@ -50,7 +57,7 @@
     </div>
 
     <div class="container">
-        <h1 id="titulo-form">📊 Control de Inventario</h1>
+        <h1>📊 Control de Inventario</h1>
         
         <input type="hidden" id="edit-id">
 
@@ -60,20 +67,20 @@
             <div><label>Compra TOTAL ($)</label><input type="number" id="pc_total" oninput="calcularUnitario()"></div>
             <div><label>Compra UNIT. ($)</label><input type="text" id="pc_un" readonly style="background:#eee"></div>
             <div><label>Venta UNIT. ($)</label><input type="number" id="pv"></div>
-            <button id="btn-guardar" onclick="guardarProducto()" style="background:var(--success); color:white; align-self:flex-end; height:40px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">+ AGREGAR</button>
+            <button id="btn-guardar" onclick="guardarProducto()" style="background:var(--success); color:white; align-self:flex-end; height:45px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">+ AGREGAR</button>
         </div>
 
-        <input type="text" id="bus" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ddd;" placeholder="🔍 Buscar producto..." onkeyup="dibujar()">
+        <input type="text" id="bus" style="width:100%; padding:12px; margin-bottom:15px; border-radius:5px; border:2px solid #ccc;" placeholder="🔍 Buscar producto en estantería..." onkeyup="dibujar()">
 
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th>Producto</th>
+                        <th style="width: 25%;">Producto</th>
                         <th>Stock</th>
-                        <th class="col-compra">Compra Total</th>
-                        <th class="col-compra">Costo Unit.</th>
-                        <th class="col-venta">Venta Unit.</th>
+                        <th class="col-compra-header">Compra Total</th>
+                        <th class="col-compra-header">Costo Unit.</th>
+                        <th class="col-venta-header">Venta Unit.</th>
                         <th>Ganancia Un.</th>
                         <th>Acciones</th>
                     </tr>
@@ -83,8 +90,8 @@
         </div>
 
         <div class="total-resumen">
-            <div>Inversión: <b id="res-inv">$ 0</b></div>
-            <div>Ganancia Estimada: <b id="res-util">$ 0</b></div>
+            <div>Inversión: <span id="res-inv">$ 0</span></div>
+            <div>Ganancia Estimada: <span id="res-util">$ 0</span></div>
         </div>
     </div>
 </div>
@@ -121,15 +128,12 @@
         let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
 
         if(idParaEditar) {
-            // MODO EDICIÓN
             const index = inv.findIndex(p => p.id == idParaEditar);
             inv[index] = { id: parseInt(idParaEditar), nombre, cant, p_total, p_un: Math.round(p_total/cant), p_v: p_venta };
             document.getElementById('edit-id').value = "";
             document.getElementById('btn-guardar').innerText = "+ AGREGAR";
             document.getElementById('btn-guardar').style.background = "var(--success)";
-            document.getElementById('titulo-form').innerText = "📊 Control de Inventario";
         } else {
-            // MODO NUEVO
             inv.push({ id: Date.now(), nombre, cant, p_total, p_un: Math.round(p_total/cant), p_v: p_venta });
         }
 
@@ -141,18 +145,15 @@
     function editar(id) {
         let inv = JSON.parse(localStorage.getItem('ferre_secure'));
         const p = inv.find(x => x.id == id);
-        
         document.getElementById('edit-id').value = p.id;
         document.getElementById('n').value = p.nombre;
         document.getElementById('c').value = p.cant;
         document.getElementById('pc_total').value = p.p_total;
         document.getElementById('pv').value = p.p_v;
-        
         document.getElementById('btn-guardar').innerText = "💾 ACTUALIZAR";
         document.getElementById('btn-guardar').style.background = "var(--edit)";
-        document.getElementById('titulo-form').innerText = "✏️ Editando: " + p.nombre;
         calcularUnitario();
-        window.scrollTo(0,0); // Sube la pantalla al formulario
+        window.scrollTo(0,0);
     }
 
     function dibujar() {
@@ -169,12 +170,12 @@
 
             lista.innerHTML += `
                 <tr>
-                    <td><b>${p.nombre}</b></td>
-                    <td>${p.cant}</td>
-                    <td class="col-compra">${formato.format(p.p_total)}</td>
-                    <td class="col-compra">${formato.format(p.p_un)}</td>
-                    <td class="col-venta"><b>${formato.format(p.p_v)}</b></td>
-                    <td style="color:var(--success); font-weight:bold">${formato.format(gan)}</td>
+                    <td style="text-align:left"><b>${p.nombre}</b></td>
+                    <td style="font-size:16px"><b>${p.cant}</b></td>
+                    <td class="col-compra-celda">${formato.format(p.p_total)}</td>
+                    <td class="col-compra-celda"><b>${formato.format(p.p_un)}</b></td>
+                    <td class="col-venta-celda"><b>${formato.format(p.p_v)}</b></td>
+                    <td class="ganancia-texto">${formato.format(gan)}</td>
                     <td>
                         <button class="btn-accion" style="background:var(--edit)" onclick="editar(${p.id})">✏️</button>
                         <button class="btn-accion" style="background:var(--danger)" onclick="borrar(${p.id})">🗑️</button>
@@ -194,11 +195,7 @@
     }
 
     function limpiarForm() {
-        document.getElementById('n').value = '';
-        document.getElementById('c').value = '';
-        document.getElementById('pc_total').value = '';
-        document.getElementById('pc_un').value = '';
-        document.getElementById('pv').value = '';
+        document.querySelectorAll('input').forEach(i => i.value = '');
     }
 </script>
 </body>
