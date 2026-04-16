@@ -3,51 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Cloud - Ferretería</title>
+    <title>Inventario Cloud - Acceso Privado</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; --edit: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 10px; }
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --edit: #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 0; color: #333; }
         
-        #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 10000; }
-        .login-card { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 350px; }
+        /* LOGIN ADAPTABLE */
+        #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .login-card { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .login-card h2 { margin-bottom: 20px; color: var(--primary); }
+        .login-card input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
+        .btn-entrar { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
 
-        #contenido-sistema { display: none; }
+        /* SISTEMA */
+        #contenido-sistema { display: none; padding: 10px; }
         .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 10px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
+        .nav-menu a, .btn-salir { color: white; text-decoration: none; font-weight: bold; padding: 10px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; border: none; cursor: pointer; }
+        .btn-salir { background: var(--danger); }
+
+        .container { max-width: 1100px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .container { max-width: 1200px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* FORMULARIO ADAPTABLE */
+        .form-inv { display: grid; grid-template-columns: 1fr; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+        @media (min-width: 600px) { .form-inv { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+        .form-inv input { padding: 12px; border: 1px solid #999; border-radius: 6px; font-size: 15px; }
 
-        .form-inv { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
-        .form-inv div { display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 3px; }
-        input { padding: 10px; border: 1px solid #999; border-radius: 5px; font-size: 14px; color: black; }
-
-        .tabla-scroll { overflow-x: auto; width: 100%; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { background: var(--primary); color: white; padding: 12px; font-size: 12px; border: 1px solid #1a252f; }
-        td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 14px; color: #000; font-weight: 500; }
+        /* TABLA ADAPTABLE */
+        .tabla-scroll { overflow-x: auto; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #eee; padding: 12px; font-size: 13px; text-align: center; }
+        td { padding: 12px; border: 1px solid #eee; text-align: center; font-size: 15px; font-weight: 500; color: #000; }
         
-        .col-compra-header { background-color: #fbdbc3 !important; color: #5d4037 !important; font-weight: 900; }
-        .col-venta-header { background-color: #c8e6c9 !important; color: #1b5e20 !important; font-weight: 900; }
-
-        .btn-accion { border: none; color: white; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 2px; }
-        .total-resumen { margin-top: 15px; padding: 15px; background: var(--primary); color: white; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; text-align: center; font-weight: bold; }
-
-        @media (min-width: 600px) {
-            .total-resumen { flex-direction: row; justify-content: space-around; font-size: 1.2em; }
-            body { padding: 20px; }
-        }
+        .btn-accion { padding: 8px; border: none; border-radius: 5px; color: white; cursor: pointer; margin: 2px; }
     </style>
 </head>
 <body>
 
 <div id="bloqueo">
     <div class="login-card">
-        <h2>🔒 Seguridad 🇨🇴</h2>
-        <input type="password" id="clave-input" placeholder="Contraseña Ferretería">
-        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:12px; margin-top:10px; width:100%; border-radius:5px; font-weight:bold; cursor:pointer;">INGRESAR</button>
+        <h2>🇨🇴 Ferretería Cloud</h2>
+        <input type="email" id="email-login" placeholder="Correo electrónico">
+        <input type="password" id="pass-login" placeholder="Contraseña">
+        <button class="btn-entrar" onclick="iniciarSesion()">ENTRAR</button>
     </div>
 </div>
 
@@ -55,22 +55,18 @@
     <div class="nav-menu">
         <a href="index.html">📦 INVENTARIO</a>
         <a href="factura.html">📄 FACTURACIÓN</a>
+        <button class="btn-salir" onclick="cerrarSesion()">CERRAR SESIÓN</button>
     </div>
 
     <div class="container">
-        <h2 id="titulo-form" style="margin-top:0">📊 Control de Inventario CLOUD</h2>
-        <input type="hidden" id="edit-id">
-
+        <h3>📦 Control de Inventario</h3>
         <div class="form-inv">
-            <div><label>Producto</label><input type="text" id="n"></div>
-            <div><label>Cantidad</label><input type="number" id="c" oninput="calcularUnitario()"></div>
-            <div><label>Compra Total ($)</label><input type="number" id="pc_total" oninput="calcularUnitario()"></div>
-            <div><label>Costo Unitario</label><input type="text" id="pc_un" readonly style="background:#eee"></div>
-            <div><label>Venta Unidad</label><input type="number" id="pv"></div>
-            <button id="btn-guardar" onclick="guardarFirebase()" style="background:var(--success); color:white; height:45px; border:none; border-radius:5px; font-weight:bold; cursor:pointer">+ GUARDAR</button>
+            <input type="text" id="n" placeholder="Nombre Producto">
+            <input type="number" id="c" placeholder="Cantidad">
+            <input type="number" id="pt" placeholder="Costo Total ($)">
+            <input type="number" id="pv" placeholder="Venta Unidad ($)">
+            <button onclick="guardarFirebase()" style="background:var(--success); color:white; font-weight:bold; border:none; border-radius:6px; cursor:pointer;">+ GUARDAR</button>
         </div>
-
-        <input type="text" id="bus" style="width:100%; padding:12px; margin-bottom:15px; border-radius:5px; border:2px solid #ccc; box-sizing:border-box" placeholder="🔍 Buscar en la nube..." onkeyup="dibujar()">
 
         <div class="tabla-scroll">
             <table>
@@ -78,26 +74,18 @@
                     <tr>
                         <th>Producto</th>
                         <th>Stock</th>
-                        <th class="col-compra-header">Compra Total</th>
-                        <th class="col-compra-header">Costo Unit.</th>
-                        <th class="col-venta-header">Venta Unit.</th>
-                        <th>Ganancia</th>
+                        <th>Costo Unit.</th>
+                        <th>Venta Unit.</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody id="lista"></tbody>
             </table>
         </div>
-
-        <div class="total-resumen">
-            <div>Inversión: <span id="res-inv">$ 0</span></div>
-            <div>Ganancia Estimada: <span id="res-util">$ 0</span></div>
-        </div>
     </div>
 </div>
 
 <script>
-    // TU NUEVA CONFIGURACIÓN DE FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyBbsO9WwtptjDTCetZOauYVPCXCzJbZB30",
       authDomain: "ferreteria-distri-app-6d960.firebaseapp.com",
@@ -107,116 +95,65 @@
       appId: "1:507308726712:web:5c557f79a59b7a561d574d"
     };
 
-    // Inicializar Firebase Compat
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
-
-    const CLAVE = "ferreteria/distri$34";
     const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-    function validarClave() {
-        if(document.getElementById('clave-input').value === CLAVE) {
+    // Monitor de Sesión
+    auth.onAuthStateChanged((user) => {
+        if (user) {
             document.getElementById('bloqueo').style.display = 'none';
             document.getElementById('contenido-sistema').style.display = 'block';
-            escucharDatos();
-        } else { alert("Clave Incorrecta"); }
+            cargarDatos();
+        } else {
+            document.getElementById('bloqueo').style.display = 'flex';
+            document.getElementById('contenido-sistema').style.display = 'none';
+        }
+    });
+
+    async function iniciarSesion() {
+        const email = document.getElementById('email-login').value;
+        const pass = document.getElementById('pass-login').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, pass);
+        } catch (error) { alert("Usuario o clave incorrecta"); }
     }
 
-    function calcularUnitario() {
-        const total = parseFloat(document.getElementById('pc_total').value) || 0;
-        const cant = parseFloat(document.getElementById('c').value) || 0;
-        document.getElementById('pc_un').value = cant > 0 ? formato.format(Math.round(total / cant)) : "$ 0";
-    }
+    function cerrarSesion() { auth.signOut(); }
 
     async function guardarFirebase() {
-        const idEd = document.getElementById('edit-id').value;
-        const nombre = document.getElementById('n').value.toUpperCase();
-        const cant = parseInt(document.getElementById('c').value);
-        const p_total = parseFloat(document.getElementById('pc_total').value);
-        const p_venta = parseFloat(document.getElementById('pv').value);
+        const n = document.getElementById('n').value.toUpperCase();
+        const c = parseInt(document.getElementById('c').value);
+        const pt = parseFloat(document.getElementById('pt').value);
+        const pv = parseFloat(document.getElementById('pv').value);
 
-        if(!nombre || isNaN(cant)) return alert("Completa los datos");
-
-        const datos = {
-            nombre, cant, p_total,
-            p_un: Math.round(p_total/cant),
-            p_v: p_venta,
-            fecha: new Date().getTime()
-        };
-
-        try {
-            if(idEd) {
-                await db.collection("productos").doc(idEd).update(datos);
-                document.getElementById('edit-id').value = "";
-                document.getElementById('btn-guardar').innerText = "+ GUARDAR";
-                document.getElementById('btn-guardar').style.background = "var(--success)";
-            } else {
-                await db.collection("productos").add(datos);
-            }
-            limpiarForm();
-        } catch (error) {
-            alert("Error al guardar: " + error.message);
+        if(n && c) {
+            await db.collection("productos").add({
+                nombre: n, cant: c, p_total: pt, p_un: Math.round(pt/c), p_v: pv, fecha: new Date().getTime()
+            });
+            document.querySelectorAll('input').forEach(i => i.value = "");
         }
     }
 
-    function escucharDatos() {
+    function cargarDatos() {
         db.collection("productos").orderBy("fecha", "desc").onSnapshot((snapshot) => {
             const lista = document.getElementById('lista');
-            const bus = document.getElementById('bus').value.toLowerCase();
-            lista.innerHTML = '';
-            let ti = 0; let tu = 0;
-
+            lista.innerHTML = "";
             snapshot.forEach((doc) => {
                 const p = doc.data();
-                const id = doc.id;
-                if(p.nombre.toLowerCase().includes(bus)) {
-                    const g = p.p_v - p.p_un;
-                    ti += (p.p_un * p.cant);
-                    tu += (g * p.cant);
-
-                    lista.innerHTML += `
-                        <tr>
-                            <td style="text-align:left"><b>${p.nombre}</b></td>
-                            <td><b>${p.cant}</b></td>
-                            <td style="background:#fff4ed">${formato.format(p.p_total)}</td>
-                            <td style="background:#fff4ed"><b>${formato.format(p.p_un)}</b></td>
-                            <td style="background:#f1f8e9"><b>${formato.format(p.p_v)}</b></td>
-                            <td style="color:green; font-weight:bold">${formato.format(g)}</td>
-                            <td>
-                                <button class="btn-accion" style="background:var(--edit)" onclick="editar('${id}', '${p.nombre}', ${p.cant}, ${p.p_total}, ${p.p_v})">✏️</button>
-                                <button class="btn-accion" style="background:var(--danger)" onclick="borrar('${id}')">🗑️</button>
-                            </td>
-                        </tr>`;
-                }
+                lista.innerHTML += `<tr>
+                    <td style="text-align:left"><b>${p.nombre}</b></td>
+                    <td>${p.cant}</td>
+                    <td>${formato.format(p.p_un)}</td>
+                    <td style="color:green"><b>${formato.format(p.p_v)}</b></td>
+                    <td><button class="btn-accion" style="background:var(--danger)" onclick="borrar('${doc.id}')">🗑️</button></td>
+                </tr>`;
             });
-            document.getElementById('res-inv').innerText = formato.format(ti);
-            document.getElementById('res-util').innerText = formato.format(tu);
         });
     }
 
-    function editar(id, n, c, pt, pv) {
-        document.getElementById('edit-id').value = id;
-        document.getElementById('n').value = n;
-        document.getElementById('c').value = c;
-        document.getElementById('pc_total').value = pt;
-        document.getElementById('pv').value = pv;
-        document.getElementById('btn-guardar').innerText = "💾 ACTUALIZAR";
-        document.getElementById('btn-guardar').style.background = "var(--edit)";
-        calcularUnitario();
-        window.scrollTo(0,0);
-    }
-
-    async function borrar(id) {
-        if(confirm("¿Eliminar de la nube?")) {
-            await db.collection("productos").doc(id).delete();
-        }
-    }
-
-    function dibujar() { escucharDatos(); }
-
-    function limpiarForm() {
-        document.querySelectorAll('.form-inv input').forEach(i => i.value = '');
-    }
+    async function borrar(id) { if(confirm("¿Eliminar?")) await db.collection("productos").doc(id).delete(); }
 </script>
 </body>
 </html>
