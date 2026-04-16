@@ -3,200 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Profesional COP</title>
+    <title>Inventario Cloud - Ferretería</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; --edit: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
-        
-        #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 10000; }
-        .login-card { background: white; padding: 30px; border-radius: 12px; text-align: center; }
-
-        #contenido-sistema { display: none; }
-        .nav-menu { background: var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 10px 20px; border-radius: 5px; background: rgba(255,255,255,0.2); }
-        
-        .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        
-        .form-inv { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
-        .form-inv div { display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 4px; }
-        input { padding: 10px; border: 1px solid #999; border-radius: 5px; color: #000; font-weight: 500; }
-
-        /* MEJORA DE TABLA - COLORES MÁS FUERTES */
-        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
-        th { background: var(--primary); color: white; padding: 14px; border: 1px solid #1a252f; text-transform: uppercase; }
-        td { padding: 12px; border: 1px solid #ddd; text-align: center; color: #000; font-weight: 500; }
-        
-        /* Celdas de Compra (Naranja suave con texto negro) */
-        .col-compra-header { background-color: #fbdbc3 !important; color: #5d4037 !important; font-weight: 900; }
-        .col-compra-celda { background-color: #fff4ed; }
-
-        /* Celdas de Venta (Verde suave con texto negro) */
-        .col-venta-header { background-color: #c8e6c9 !important; color: #1b5e20 !important; font-weight: 900; }
-        .col-venta-celda { background-color: #f1f8e9; }
-        
-        .btn-accion { border: none; color: white; padding: 8px; border-radius: 4px; cursor: pointer; margin: 0 3px; font-size: 16px; }
-        .total-resumen { margin-top: 20px; padding: 20px; background: var(--primary); color: white; border-radius: 8px; display: flex; justify-content: space-around; font-size: 1.3em; font-weight: bold; }
-        .ganancia-texto { color: #27ae60; font-weight: 900; font-size: 1.1em; }
+        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 10px; }
+        #contenido-sistema { display: block; padding: 20px; } /* Desactivé el bloqueo temporal para pruebas */
+        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-inv { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+        input { padding: 10px; border: 1px solid #999; border-radius: 5px; }
+        .tabla-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: var(--primary); color: white; padding: 10px; }
+        td { padding: 10px; border: 1px solid #eee; text-align: center; color: black; }
+        .btn-accion { border: none; padding: 8px; border-radius: 4px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="bloqueo">
-    <div class="login-card">
-        <h2>🔒 Seguridad Ferretería</h2>
-        <input type="password" id="clave-input" placeholder="Clave del sistema">
-        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:12px; margin-top:10px; width:100%; cursor:pointer; border-radius:5px; font-weight:bold;">INGRESAR</button>
-    </div>
-</div>
-
 <div id="contenido-sistema">
-    <div class="nav-menu">
-        <a href="index.html">📦 INVENTARIO</a>
-        <a href="factura.html">📄 FACTURACIÓN</a>
-    </div>
-
     <div class="container">
-        <h1>📊 Control de Inventario</h1>
-        
-        <input type="hidden" id="edit-id">
-
+        <h2>☁️ Inventario Sincronizado (Firebase)</h2>
         <div class="form-inv">
-            <div><label>Nombre Producto</label><input type="text" id="n"></div>
-            <div><label>Cantidad (Und)</label><input type="number" id="c" oninput="calcularUnitario()"></div>
-            <div><label>Compra TOTAL ($)</label><input type="number" id="pc_total" oninput="calcularUnitario()"></div>
-            <div><label>Compra UNIT. ($)</label><input type="text" id="pc_un" readonly style="background:#eee"></div>
-            <div><label>Venta UNIT. ($)</label><input type="number" id="pv"></div>
-            <button id="btn-guardar" onclick="guardarProducto()" style="background:var(--success); color:white; align-self:flex-end; height:45px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">+ AGREGAR</button>
+            <input type="text" id="n" placeholder="Producto">
+            <input type="number" id="c" placeholder="Cant.">
+            <input type="number" id="pc_total" placeholder="Compra Total">
+            <input type="number" id="pv" placeholder="Venta Unit.">
+            <button onclick="guardarFirebase()" style="background:var(--success); color:white; font-weight:bold; cursor:pointer; border:none; border-radius:5px;">GUARDAR EN NUBE</button>
         </div>
 
-        <input type="text" id="bus" style="width:100%; padding:12px; margin-bottom:15px; border-radius:5px; border:2px solid #ccc;" placeholder="🔍 Buscar producto en estantería..." onkeyup="dibujar()">
-
-        <div style="overflow-x: auto;">
+        <div class="tabla-scroll">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 25%;">Producto</th>
+                        <th>Producto</th>
                         <th>Stock</th>
-                        <th class="col-compra-header">Compra Total</th>
-                        <th class="col-compra-header">Costo Unit.</th>
-                        <th class="col-venta-header">Venta Unit.</th>
-                        <th>Ganancia Un.</th>
-                        <th>Acciones</th>
+                        <th>Costo Unit.</th>
+                        <th>Venta Unit.</th>
+                        <th>Ganancia</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody id="lista"></tbody>
             </table>
         </div>
-
-        <div class="total-resumen">
-            <div>Inversión: <span id="res-inv">$ 0</span></div>
-            <div>Ganancia Estimada: <span id="res-util">$ 0</span></div>
-        </div>
     </div>
 </div>
 
 <script>
-    const CLAVE = "ferreteria/distri$34";
+    // Configuración de Firebase (PEGA AQUÍ TU PROPIO CÓDIGO)
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_PROYECTO.firebaseapp.com",
+        projectId: "TU_PROYECTO_ID",
+        storageBucket: "TU_PROYECTO.appspot.com",
+        messagingSenderId: "TU_ID",
+        appId: "TU_APP_ID"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
     const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-    function validarClave() {
-        if(document.getElementById('clave-input').value === CLAVE) {
-            document.getElementById('bloqueo').style.display = 'none';
-            document.getElementById('contenido-sistema').style.display = 'block';
-            dibujar();
-        } else { alert("Clave Incorrecta"); }
-    }
-
-    function calcularUnitario() {
-        const total = parseFloat(document.getElementById('pc_total').value) || 0;
-        const cant = parseFloat(document.getElementById('c').value) || 0;
-        const res = document.getElementById('pc_un');
-        if(cant > 0) res.value = formato.format(Math.round(total / cant));
-        else res.value = "$ 0";
-    }
-
-    function guardarProducto() {
-        const idParaEditar = document.getElementById('edit-id').value;
+    // FUNCIÓN PARA GUARDAR
+    async function guardarFirebase() {
         const nombre = document.getElementById('n').value.toUpperCase();
         const cant = parseInt(document.getElementById('c').value);
         const p_total = parseFloat(document.getElementById('pc_total').value);
         const p_venta = parseFloat(document.getElementById('pv').value);
 
-        if(!nombre || isNaN(cant)) return alert("Completa los datos");
-
-        let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
-
-        if(idParaEditar) {
-            const index = inv.findIndex(p => p.id == idParaEditar);
-            inv[index] = { id: parseInt(idParaEditar), nombre, cant, p_total, p_un: Math.round(p_total/cant), p_v: p_venta };
-            document.getElementById('edit-id').value = "";
-            document.getElementById('btn-guardar').innerText = "+ AGREGAR";
-            document.getElementById('btn-guardar').style.background = "var(--success)";
-        } else {
-            inv.push({ id: Date.now(), nombre, cant, p_total, p_un: Math.round(p_total/cant), p_v: p_venta });
+        if (nombre && cant) {
+            await db.collection("productos").add({
+                nombre, cant, p_total,
+                p_un: Math.round(p_total / cant),
+                p_v: p_venta,
+                fecha: new Date().getTime()
+            });
+            alert("Sincronizado con éxito");
+            document.querySelectorAll('input').forEach(i => i.value = '');
         }
-
-        localStorage.setItem('ferre_secure', JSON.stringify(inv));
-        limpiarForm();
-        dibujar();
     }
 
-    function editar(id) {
-        let inv = JSON.parse(localStorage.getItem('ferre_secure'));
-        const p = inv.find(x => x.id == id);
-        document.getElementById('edit-id').value = p.id;
-        document.getElementById('n').value = p.nombre;
-        document.getElementById('c').value = p.cant;
-        document.getElementById('pc_total').value = p.p_total;
-        document.getElementById('pv').value = p.p_v;
-        document.getElementById('btn-guardar').innerText = "💾 ACTUALIZAR";
-        document.getElementById('btn-guardar').style.background = "var(--edit)";
-        calcularUnitario();
-        window.scrollTo(0,0);
-    }
-
-    function dibujar() {
+    // FUNCIÓN PARA LEER EN TIEMPO REAL
+    db.collection("productos").orderBy("fecha", "desc").onSnapshot((querySnapshot) => {
         const lista = document.getElementById('lista');
-        const filtro = document.getElementById('bus').value.toLowerCase();
-        let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
-        lista.innerHTML = '';
-        let tInv = 0; let tUtil = 0;
-
-        inv.filter(p => p.nombre.toLowerCase().includes(filtro)).forEach(p => {
-            const gan = p.p_v - p.p_un;
-            tInv += (p.p_un * p.cant);
-            tUtil += (gan * p.cant);
-
+        lista.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+            const p = doc.data();
+            const g = p.p_v - p.p_un;
             lista.innerHTML += `
                 <tr>
                     <td style="text-align:left"><b>${p.nombre}</b></td>
-                    <td style="font-size:16px"><b>${p.cant}</b></td>
-                    <td class="col-compra-celda">${formato.format(p.p_total)}</td>
-                    <td class="col-compra-celda"><b>${formato.format(p.p_un)}</b></td>
-                    <td class="col-venta-celda"><b>${formato.format(p.p_v)}</b></td>
-                    <td class="ganancia-texto">${formato.format(gan)}</td>
-                    <td>
-                        <button class="btn-accion" style="background:var(--edit)" onclick="editar(${p.id})">✏️</button>
-                        <button class="btn-accion" style="background:var(--danger)" onclick="borrar(${p.id})">🗑️</button>
-                    </td>
+                    <td>${p.cant}</td>
+                    <td>${formato.format(p.p_un)}</td>
+                    <td><b>${formato.format(p.p_v)}</b></td>
+                    <td style="color:green; font-weight:bold">${formato.format(g)}</td>
+                    <td><button onclick="borrarFirebase('${doc.id}')" style="background:red" class="btn-accion">🗑️</button></td>
                 </tr>`;
         });
-        document.getElementById('res-inv').innerText = formato.format(tInv);
-        document.getElementById('res-util').innerText = formato.format(tUtil);
-    }
+    });
 
-    function borrar(id) {
-        if(confirm("¿Eliminar producto?")) {
-            let inv = JSON.parse(localStorage.getItem('ferre_secure')).filter(x => x.id != id);
-            localStorage.setItem('ferre_secure', JSON.stringify(inv));
-            dibujar();
+    async function borrarFirebase(id) {
+        if(confirm("¿Eliminar de la nube?")) {
+            await db.collection("productos").doc(id).delete();
         }
-    }
-
-    function limpiarForm() {
-        document.querySelectorAll('input').forEach(i => i.value = '');
     }
 </script>
 </body>
 </html>
+
