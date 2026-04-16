@@ -3,49 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Ferretería COP</title>
+    <title>Inventario Profesional COP - Edición</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; }
+        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; --edit: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         
-        /* Bloqueo de Seguridad */
         #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 10000; }
-        .login-card { background: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .login-card { background: white; padding: 30px; border-radius: 12px; text-align: center; }
 
         #contenido-sistema { display: none; }
         .nav-menu { background: var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); transition: 0.3s; }
-        .nav-menu a:hover { background: var(--secondary); }
+        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
         
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         
-        /* Formulario Organizado */
-        .form-inv { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; margin-bottom: 20px; }
+        .form-inv { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
         .form-inv div { display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; color: #495057; margin-bottom: 5px; }
-        input { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
-        input:focus { border-color: var(--secondary); outline: none; }
+        label { font-size: 11px; font-weight: bold; color: #666; margin-bottom: 4px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
 
-        /* Tabla Estilo Profesional */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: var(--primary); color: white; padding: 12px; font-size: 13px; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: var(--primary); color: white; padding: 12px; border: 1px solid #34495e; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
         
-        .col-compra { background-color: #fff9f0; border-left: 1px solid #ffeeba; } 
-        .col-venta { background-color: #f0fff4; border-left: 1px solid #c6f6d5; }
+        .col-compra { background-color: #fff9f0; } 
+        .col-venta { background-color: #f0fff4; }
         
-        .ganancia-positiva { color: var(--success); font-weight: bold; background: #e6fffa; padding: 5px; border-radius: 4px; border: 1px solid #b2f5ea; }
-        
-        .total-resumen { margin-top: 20px; padding: 20px; background: var(--primary); color: white; border-radius: 10px; display: flex; justify-content: space-around; font-size: 1.2em; }
+        .btn-accion { border: none; color: white; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 12px; margin: 0 2px; }
+        .total-resumen { margin-top: 20px; padding: 15px; background: var(--primary); color: white; border-radius: 8px; display: flex; justify-content: space-around; font-size: 1.1em; }
     </style>
 </head>
 <body>
 
 <div id="bloqueo">
     <div class="login-card">
-        <h2 style="margin-top:0">🇨🇴 Acceso Ferretería</h2>
-        <input type="password" id="clave-input" placeholder="Contraseña Distri">
-        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:12px; margin-top:15px; width:100%; cursor:pointer; border-radius:6px; font-weight:bold;">INGRESAR AL SISTEMA</button>
+        <h2>🔒 Seguridad Ferretería</h2>
+        <input type="password" id="clave-input" placeholder="Clave del sistema">
+        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:10px; margin-top:10px; width:100%; cursor:pointer; border-radius:5px;">Entrar</button>
     </div>
 </div>
 
@@ -56,30 +50,32 @@
     </div>
 
     <div class="container">
-        <h1>📦 Control Maestro de Inventario (COP)</h1>
+        <h1 id="titulo-form">📊 Control de Inventario</h1>
         
+        <input type="hidden" id="edit-id">
+
         <div class="form-inv">
-            <div><label>Nombre del Producto</label><input type="text" id="n" placeholder="Ej: Puntilla 2 pulg"></div>
-            <div><label>Cantidad (Unidades)</label><input type="number" id="c" oninput="calcularUnitario()" placeholder="0"></div>
-            <div><label>Compra TOTAL ($)</label><input type="number" id="pc_total" oninput="calcularUnitario()" placeholder="Precio que pagaste"></div>
-            <div><label>Costo UNITARIO ($)</label><input type="text" id="pc_un" readonly style="background:#e9ecef; font-weight:bold; color:var(--primary)"></div>
-            <div><label>Venta UNITARIA ($)</label><input type="number" id="pv" placeholder="Precio al cliente"></div>
-            <button onclick="agregar()" style="background:var(--success); color:white; align-self:flex-end; height:42px; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">+ REGISTRAR</button>
+            <div><label>Nombre Producto</label><input type="text" id="n"></div>
+            <div><label>Cantidad (Und)</label><input type="number" id="c" oninput="calcularUnitario()"></div>
+            <div><label>Compra TOTAL ($)</label><input type="number" id="pc_total" oninput="calcularUnitario()"></div>
+            <div><label>Compra UNIT. ($)</label><input type="text" id="pc_un" readonly style="background:#eee"></div>
+            <div><label>Venta UNIT. ($)</label><input type="number" id="pv"></div>
+            <button id="btn-guardar" onclick="guardarProducto()" style="background:var(--success); color:white; align-self:flex-end; height:40px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">+ AGREGAR</button>
         </div>
 
-        <input type="text" id="bus" style="width:100%; padding:12px; margin-bottom:15px; border-radius:6px; border:1px solid #ddd; box-sizing: border-box;" placeholder="🔍 Buscar producto en el inventario..." onkeyup="dibujar()">
+        <input type="text" id="bus" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ddd;" placeholder="🔍 Buscar producto..." onkeyup="dibujar()">
 
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th>Descripción</th>
-                        <th>Existencia</th>
-                        <th class="col-compra">Inversión Total</th>
-                        <th class="col-compra">Costo por Unidad</th>
-                        <th class="col-venta">Precio Venta</th>
-                        <th>Ganancia Unidad</th>
-                        <th>Acción</th>
+                        <th>Producto</th>
+                        <th>Stock</th>
+                        <th class="col-compra">Compra Total</th>
+                        <th class="col-compra">Costo Unit.</th>
+                        <th class="col-venta">Venta Unit.</th>
+                        <th>Ganancia Un.</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="lista"></tbody>
@@ -87,69 +83,76 @@
         </div>
 
         <div class="total-resumen">
-            <div>Inversión en Bodega: <b id="res-inv">$ 0</b></div>
-            <div>Utilidad Proyectada: <b id="res-util">$ 0</b></div>
+            <div>Inversión: <b id="res-inv">$ 0</b></div>
+            <div>Ganancia Estimada: <b id="res-util">$ 0</b></div>
         </div>
     </div>
 </div>
 
 <script>
     const CLAVE = "ferreteria/distri$34";
-    // Formateador oficial para Peso Colombiano
-    const formatoCOP = new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0
-    });
+    const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
     function validarClave() {
         if(document.getElementById('clave-input').value === CLAVE) {
             document.getElementById('bloqueo').style.display = 'none';
             document.getElementById('contenido-sistema').style.display = 'block';
             dibujar();
-        } else { alert("Clave incorrecta para el sistema de ferretería."); }
+        } else { alert("Clave Incorrecta"); }
     }
 
     function calcularUnitario() {
         const total = parseFloat(document.getElementById('pc_total').value) || 0;
         const cant = parseFloat(document.getElementById('c').value) || 0;
-        const resultado = document.getElementById('pc_un');
-        if(cant > 0) {
-            const unitario = Math.round(total / cant);
-            resultado.value = formatoCOP.format(unitario);
-            window.unitarioCalculado = unitario;
-        } else {
-            resultado.value = "$ 0";
-        }
+        const res = document.getElementById('pc_un');
+        if(cant > 0) res.value = formato.format(Math.round(total / cant));
+        else res.value = "$ 0";
     }
 
-    function agregar() {
-        const nombre = document.getElementById('n').value;
+    function guardarProducto() {
+        const idParaEditar = document.getElementById('edit-id').value;
+        const nombre = document.getElementById('n').value.toUpperCase();
         const cant = parseInt(document.getElementById('c').value);
         const p_total = parseFloat(document.getElementById('pc_total').value);
         const p_venta = parseFloat(document.getElementById('pv').value);
 
-        if(nombre && cant > 0 && p_total >= 0 && p_venta >= 0) {
-            let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
-            inv.push({
-                id: Date.now(),
-                nombre: nombre.toUpperCase(),
-                cant,
-                p_total,
-                p_un: Math.round(p_total / cant),
-                p_v: p_venta
-            });
-            localStorage.setItem('ferre_secure', JSON.stringify(inv));
-            // Limpiar campos
-            document.getElementById('n').value = '';
-            document.getElementById('c').value = '';
-            document.getElementById('pc_total').value = '';
-            document.getElementById('pc_un').value = '';
-            document.getElementById('pv').value = '';
-            dibujar();
+        if(!nombre || isNaN(cant)) return alert("Completa los datos");
+
+        let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
+
+        if(idParaEditar) {
+            // MODO EDICIÓN
+            const index = inv.findIndex(p => p.id == idParaEditar);
+            inv[index] = { id: parseInt(idParaEditar), nombre, cant, p_total, p_un: Math.round(p_total/cant), p_v: p_venta };
+            document.getElementById('edit-id').value = "";
+            document.getElementById('btn-guardar').innerText = "+ AGREGAR";
+            document.getElementById('btn-guardar').style.background = "var(--success)";
+            document.getElementById('titulo-form').innerText = "📊 Control de Inventario";
         } else {
-            alert("Por favor completa todos los valores en pesos.");
+            // MODO NUEVO
+            inv.push({ id: Date.now(), nombre, cant, p_total, p_un: Math.round(p_total/cant), p_v: p_venta });
         }
+
+        localStorage.setItem('ferre_secure', JSON.stringify(inv));
+        limpiarForm();
+        dibujar();
+    }
+
+    function editar(id) {
+        let inv = JSON.parse(localStorage.getItem('ferre_secure'));
+        const p = inv.find(x => x.id == id);
+        
+        document.getElementById('edit-id').value = p.id;
+        document.getElementById('n').value = p.nombre;
+        document.getElementById('c').value = p.cant;
+        document.getElementById('pc_total').value = p.p_total;
+        document.getElementById('pv').value = p.p_v;
+        
+        document.getElementById('btn-guardar').innerText = "💾 ACTUALIZAR";
+        document.getElementById('btn-guardar').style.background = "var(--edit)";
+        document.getElementById('titulo-form').innerText = "✏️ Editando: " + p.nombre;
+        calcularUnitario();
+        window.scrollTo(0,0); // Sube la pantalla al formulario
     }
 
     function dibujar() {
@@ -157,37 +160,45 @@
         const filtro = document.getElementById('bus').value.toLowerCase();
         let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
         lista.innerHTML = '';
-
-        let acumuladoInv = 0;
-        let acumuladoUtil = 0;
+        let tInv = 0; let tUtil = 0;
 
         inv.filter(p => p.nombre.toLowerCase().includes(filtro)).forEach(p => {
-            const ganancia = p.p_v - p.p_un;
-            acumuladoInv += (p.cant * p.p_un);
-            acumuladoUtil += (p.cant * ganancia);
+            const gan = p.p_v - p.p_un;
+            tInv += (p.p_un * p.cant);
+            tUtil += (gan * p.cant);
 
             lista.innerHTML += `
                 <tr>
-                    <td style="text-align:left"><b>${p.nombre}</b></td>
-                    <td><span style="background:#eee; padding:3px 8px; border-radius:10px">${p.cant}</span></td>
-                    <td class="col-compra">${formatoCOP.format(p.p_total)}</td>
-                    <td class="col-compra">${formatoCOP.format(p.p_un)}</td>
-                    <td class="col-venta"><b>${formatoCOP.format(p.p_v)}</b></td>
-                    <td><span class="ganancia-positiva">${formatoCOP.format(ganancia)}</span></td>
-                    <td><button onclick="borrar(${p.id})" style="background:var(--danger); border:none; color:white; padding:6px; border-radius:4px; cursor:pointer">🗑️</button></td>
+                    <td><b>${p.nombre}</b></td>
+                    <td>${p.cant}</td>
+                    <td class="col-compra">${formato.format(p.p_total)}</td>
+                    <td class="col-compra">${formato.format(p.p_un)}</td>
+                    <td class="col-venta"><b>${formato.format(p.p_v)}</b></td>
+                    <td style="color:var(--success); font-weight:bold">${formato.format(gan)}</td>
+                    <td>
+                        <button class="btn-accion" style="background:var(--edit)" onclick="editar(${p.id})">✏️</button>
+                        <button class="btn-accion" style="background:var(--danger)" onclick="borrar(${p.id})">🗑️</button>
+                    </td>
                 </tr>`;
         });
-
-        document.getElementById('res-inv').innerText = formatoCOP.format(acumuladoInv);
-        document.getElementById('res-util').innerText = formatoCOP.format(acumuladoUtil);
+        document.getElementById('res-inv').innerText = formato.format(tInv);
+        document.getElementById('res-util').innerText = formato.format(tUtil);
     }
 
     function borrar(id) {
-        if(confirm("¿Seguro que desea eliminar este producto del inventario?")) {
-            let inv = JSON.parse(localStorage.getItem('ferre_secure')).filter(x => x.id !== id);
+        if(confirm("¿Eliminar producto?")) {
+            let inv = JSON.parse(localStorage.getItem('ferre_secure')).filter(x => x.id != id);
             localStorage.setItem('ferre_secure', JSON.stringify(inv));
             dibujar();
         }
+    }
+
+    function limpiarForm() {
+        document.getElementById('n').value = '';
+        document.getElementById('c').value = '';
+        document.getElementById('pc_total').value = '';
+        document.getElementById('pc_un').value = '';
+        document.getElementById('pv').value = '';
     }
 </script>
 </body>
