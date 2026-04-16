@@ -3,48 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facturación Profesional COP</title>
+    <title>Facturación Barzalosa - Girardot</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; }
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --warning: #f39c12; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 10px; color: #333; }
         
-        /* Menú y Botones */
         .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; }
         
         .container { max-width: 850px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-factura { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header-factura { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
         
         .acciones-print { display: flex; gap: 10px; margin-bottom: 20px; }
         .btn-accion { flex: 1; padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-pdf { background: #e67e22; }
         .btn-print { background: #34495e; }
 
-        input, select { padding: 12px; border: 1px solid #999; border-radius: 6px; width: 100%; margin-bottom: 15px; font-size: 16px; color: black; }
+        input, select { padding: 10px; border: 1px solid #999; border-radius: 6px; width: 100%; margin-bottom: 10px; font-size: 14px; color: black; box-sizing: border-box; }
+
+        .grid-cliente { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 600px) { .grid-cliente { grid-template-columns: 1fr; } }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-weight: 600; }
 
-        /* Estilo Botones +/- */
         .controles-cantidad { display: flex; align-items: center; gap: 5px; }
         .btn-cant { background: #eee; border: 1px solid #ccc; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 18px; }
-        .btn-cant:hover { background: #ddd; }
 
-        .total-final { font-size: 2.2em; font-weight: bold; color: var(--primary); text-align: right; margin-top: 20px; border-top: 3px solid var(--primary); padding-top: 10px; }
+        .caja-pago { background: #fdfdfd; padding: 15px; border-radius: 10px; border-top: 3px solid var(--primary); margin-top: 20px; text-align: right; }
+        .total-final { font-size: 2.2em; font-weight: bold; color: var(--primary); margin-bottom: 10px; }
+        .cambio-text { font-size: 1.5em; color: var(--success); font-weight: bold; }
+
         .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; margin-top: 20px; }
+
+        .estado-badge { padding: 5px 10px; border-radius: 20px; color: white; font-size: 0.8em; font-weight: bold; }
 
         @media print {
             .nav-menu, .no-print, .btn-venta, .acciones-print, .btn-borrar, .btn-cant { display: none !important; }
             body { background: white; padding: 0; }
             .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
-            td input { border: none; background: transparent; }
+            input, select { border: none !important; background: transparent !important; appearance: none; }
         }
-        
-        .btn-borrar { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -56,8 +59,8 @@
 
 <div class="container" id="app-body" style="display:none;">
     <div class="header-factura">
-        <h2 style="margin:0; color:var(--primary);">📄 Factura de Venta</h2>
-        <div id="fecha-ver" style="font-weight: bold; color: #666;"></div>
+        <h1 style="margin:0; color:var(--primary); font-size: 1.6em;">FACTURACIÓN DISTRIBUIDORA FERRETERA BARZALOSA</h1>
+        <div id="fecha-actual" style="font-weight: bold; color: #666;"></div>
     </div>
 
     <div class="acciones-print">
@@ -66,27 +69,46 @@
     </div>
 
     <div class="no-print">
-        <label style="font-weight:bold; font-size:0.9em;">Nombre del Cliente:</label>
-        <input type="text" id="cli" placeholder="Escribe el nombre aquí..." onkeyup="actualizarVista()">
+        <div class="grid-cliente">
+            <div><label>Nombre Cliente:</label><input type="text" id="cli" onkeyup="actualizarVista()"></div>
+            <div><label>Celular:</label><input type="text" id="tel" onkeyup="actualizarVista()"></div>
+        </div>
+        <label>Dirección de Entrega:</label>
+        <input type="text" id="dir" onkeyup="actualizarVista()">
         
+        <div class="grid-cliente">
+            <div>
+                <label>Estado del Pedido:</label>
+                <select id="estado" onchange="toggleFechaEntrega()">
+                    <option value="Pendiente">⏳ PENDIENTE</option>
+                    <option value="Entregado">✅ ENTREGADO</option>
+                </select>
+            </div>
+            <div id="wrap-fecha-entrega" style="display:none;">
+                <label>Fecha de Entrega:</label>
+                <input type="date" id="fecha-entrega-val" onchange="actualizarVista()">
+            </div>
+        </div>
+
         <div style="background:#eef2f7; padding:15px; border-radius:10px; margin-bottom:20px; border: 1px solid #d1d9e6;">
-            <label style="font-weight:bold;">🔍 Buscar y Agregar Producto:</label>
-            <select id="sel-prod" onchange="agregarAlCarrito()">
-                <option value="">-- Selecciona un producto --</option>
-            </select>
+            <label>🔍 Buscar Producto:</label>
+            <select id="sel-prod" onchange="agregarAlCarrito()"></select>
         </div>
     </div>
 
-    <div id="datos-cliente-print">
-        <p><b>Cliente:</b> <span id="nombre-cli-ver">Mostrador</span></p>
+    <div id="datos-impresion" style="background:#f9f9f9; padding:10px; border-radius:8px; line-height:1.6;">
+        <b>Cliente:</b> <span id="ver-cli">Mostrador</span> | <b>Tel:</b> <span id="ver-tel">N/A</span><br>
+        <b>Dirección:</b> <span id="ver-dir">N/A</span><br>
+        <b>Estado:</b> <span id="ver-estado" style="font-weight:bold; color:red;">PENDIENTE</span> | 
+        <span id="ver-fecha-label"><b>Fecha Pedido:</b></span> <span id="ver-fecha-valor"></span>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th>Descripción</th>
-                <th style="width: 120px;">Cant</th>
-                <th>Venta Unit.</th>
+                <th style="width: 100px;">Cant</th>
+                <th>Unitario</th>
                 <th>Subtotal</th>
                 <th class="no-print"></th>
             </tr>
@@ -94,9 +116,15 @@
         <tbody id="cuerpo-factura"></tbody>
     </table>
 
-    <div class="total-final">TOTAL: <span id="total-html">$ 0</span></div>
+    <div class="caja-pago">
+        <div class="total-final">TOTAL: <span id="total-html">$ 0</span></div>
+        <div class="no-print" style="margin-bottom:10px;">
+            Recibido: $ <input type="number" id="paga-con" onkeyup="calcularCambio()" style="width: 120px; margin:0;">
+        </div>
+        <div class="cambio-text">CAMBIO: <span id="cambio-html">$ 0</span></div>
+    </div>
     
-    <button class="btn-venta no-print" onclick="registrarVentaEnNube()">✅ FINALIZAR VENTA Y DESCONTAR STOCK</button>
+    <button class="btn-venta no-print" onclick="registrarVentaEnNube()">✅ REGISTRAR VENTA</button>
 </div>
 
 <script>
@@ -108,126 +136,109 @@
       messagingSenderId: "507308726712",
       appId: "1:507308726712:web:5c557f79a59b7a561d574d"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+    const auth = firebase.auth(); const db = firebase.firestore();
+    const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-    let carrito = [];
-    let productosCloud = [];
+    let carrito = []; let productosCloud = []; let totalFactura = 0;
+    const fechaHoy = new Date().toLocaleDateString('es-CO');
 
     auth.onAuthStateChanged((user) => {
-        if (user) {
-            document.getElementById('app-body').style.display = 'block';
-            cargarProductos();
-        } else {
-            window.location.href = "index.html";
-        }
+        if (user) { document.getElementById('app-body').style.display='block'; cargarProductos(); document.getElementById('ver-fecha-valor').innerText = fechaHoy; }
+        else { window.location.href="index.html"; }
     });
 
     function cargarProductos() {
         db.collection("productos").onSnapshot((snap) => {
-            const select = document.getElementById('sel-prod');
-            select.innerHTML = '<option value="">-- Selecciona para agregar --</option>';
+            const select = document.getElementById('sel-prod'); select.innerHTML = '<option value="">-- Buscar --</option>';
             productosCloud = [];
             snap.forEach((doc) => {
-                const p = doc.data();
-                productosCloud.push({ id: doc.id, ...p });
-                if(p.cant > 0) {
-                    select.innerHTML += `<option value="${doc.id}">${p.nombre} (Dispo: ${p.cant})</option>`;
-                }
+                const p = doc.data(); productosCloud.push({ id: doc.id, ...p });
+                if(p.cant > 0) select.innerHTML += `<option value="${doc.id}">${p.nombre}</option>`;
             });
         });
+    }
+
+    function toggleFechaEntrega() {
+        const est = document.getElementById('estado').value;
+        document.getElementById('wrap-fecha-entrega').style.display = (est === 'Entregado') ? 'block' : 'none';
+        actualizarVista();
+    }
+
+    function actualizarVista() {
+        document.getElementById('ver-cli').innerText = document.getElementById('cli').value || "Mostrador";
+        document.getElementById('ver-tel').innerText = document.getElementById('tel').value || "N/A";
+        document.getElementById('ver-dir').innerText = document.getElementById('dir').value || "N/A";
+        
+        const est = document.getElementById('estado').value;
+        const vEst = document.getElementById('ver-estado');
+        vEst.innerText = est.toUpperCase();
+        vEst.style.color = (est === 'Entregado') ? 'green' : 'red';
+
+        if(est === 'Entregado') {
+            document.getElementById('ver-fecha-label').innerHTML = "<b>Fecha Entrega:</b>";
+            document.getElementById('ver-fecha-valor').innerText = document.getElementById('fecha-entrega-val').value || "Pendiente seleccionar";
+        } else {
+            document.getElementById('ver-fecha-label').innerHTML = "<b>Fecha Pedido:</b>";
+            document.getElementById('ver-fecha-valor').innerText = fechaHoy;
+        }
     }
 
     function agregarAlCarrito() {
         const id = document.getElementById('sel-prod').value;
-        if(!id) return;
         const prod = productosCloud.find(x => x.id === id);
         const yaEsta = carrito.find(x => x.id === id);
-
-        if(yaEsta) {
-            if(yaEsta.cantidad < prod.cant) yaEsta.cantidad++;
-            else alert("Sin stock suficiente");
-        } else {
-            carrito.push({ id: prod.id, nombre: prod.nombre, precio: prod.p_v, cantidad: 1, stockMax: prod.cant });
-        }
+        if(yaEsta) { if(yaEsta.cantidad < prod.cant) yaEsta.cantidad++; }
+        else { carrito.push({ id: prod.id, nombre: prod.nombre, precio: prod.p_v, cantidad: 1, stockMax: prod.cant }); }
         document.getElementById('sel-prod').value = "";
         dibujarTabla();
     }
 
-    // Funciones para los botones + y -
     function ajustarCantidad(index, cambio) {
-        const nuevaCant = carrito[index].cantidad + cambio;
-        if (nuevaCant > carrito[index].stockMax) {
-            alert("Solo tienes " + carrito[index].stockMax + " en inventario.");
-        } else if (nuevaCant >= 1) {
-            carrito[index].cantidad = nuevaCant;
-        }
-        dibujarTabla();
+        const nueva = carrito[index].cantidad + cambio;
+        if (nueva <= carrito[index].stockMax && nueva >= 1) { carrito[index].cantidad = nueva; dibujarTabla(); }
     }
 
     function dibujarTabla() {
-        const cuerpo = document.getElementById('cuerpo-factura');
-        cuerpo.innerHTML = "";
-        let total = 0;
-        
+        const cuerpo = document.getElementById('cuerpo-factura'); cuerpo.innerHTML = "";
+        totalFactura = 0;
         carrito.forEach((item, index) => {
-            const sub = item.precio * item.cantidad;
-            total += sub;
-            cuerpo.innerHTML += `
-                <tr>
-                    <td>${item.nombre}</td>
-                    <td>
-                        <div class="controles-cantidad">
-                            <button class="btn-cant no-print" onclick="ajustarCantidad(${index}, -1)">-</button>
-                            <span style="width: 30px; text-align: center;">${item.cantidad}</span>
-                            <button class="btn-cant no-print" onclick="ajustarCantidad(${index}, 1)">+</button>
-                        </div>
-                    </td>
-                    <td>${formatoCOP.format(item.precio)}</td>
-                    <td>${formatoCOP.format(sub)}</td>
-                    <td class="no-print"><button class="btn-borrar" onclick="quitarItem(${index})">X</button></td>
-                </tr>`;
+            const sub = item.precio * item.cantidad; totalFactura += sub;
+            cuerpo.innerHTML += `<tr><td>${item.nombre}</td><td><div class="controles-cantidad"><button class="btn-cant no-print" onclick="ajustarCantidad(${index}, -1)">-</button><span style="width:30px; text-align:center;">${item.cantidad}</span><button class="btn-cant no-print" onclick="ajustarCantidad(${index}, 1)">+</button></div></td><td>${formato.format(item.precio)}</td><td>${formato.format(sub)}</td><td class="no-print"><button onclick="carrito.splice(${index},1); dibujarTabla();" style="background:var(--danger); color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">X</button></td></tr>`;
         });
-        document.getElementById('total-html').innerText = formatoCOP.format(total);
+        document.getElementById('total-html').innerText = formato.format(totalFactura);
+        calcularCambio();
     }
 
-    function quitarItem(index) {
-        carrito.splice(index, 1);
-        dibujarTabla();
-    }
-
-    function actualizarVista() {
-        document.getElementById('nombre-cli-ver').innerText = document.getElementById('cli').value || "Mostrador";
+    function calcularCambio() {
+        const paga = parseFloat(document.getElementById('paga-con').value) || 0;
+        const cambio = paga - totalFactura;
+        document.getElementById('cambio-html').innerText = formato.format(cambio > 0 ? cambio : 0);
     }
 
     async function registrarVentaEnNube() {
-        if(carrito.length === 0) return alert("Agrega productos primero");
-        
+        if(carrito.length === 0) return alert("Carrito vacío");
         try {
             await db.collection("ventas").add({
                 cliente: document.getElementById('cli').value || "Mostrador",
-                total: carrito.reduce((t, i) => t + (i.precio * i.cantidad), 0),
-                fecha: new Date().toLocaleString('es-CO'),
+                telefono: document.getElementById('tel').value || "",
+                direccion: document.getElementById('dir').value || "",
+                estado: document.getElementById('estado').value,
+                fecha_pedido: fechaHoy,
+                fecha_entrega: document.getElementById('fecha-entrega-val').value || "",
+                total: totalFactura,
                 items: carrito
             });
-
             for (const item of carrito) {
                 const ref = db.collection("productos").doc(item.id);
                 const snap = await ref.get();
                 await ref.update({ cant: snap.data().cant - item.cantidad });
             }
-
-            alert("✅ Venta Guardada con éxito");
+            alert("✅ Venta Guardada");
             location.reload();
-        } catch (e) { alert("Error: " + e.message); }
+        } catch (e) { alert("Error al guardar"); }
     }
-
-    document.getElementById('fecha-ver').innerText = new Date().toLocaleDateString('es-CO', { 
-        year: 'numeric', month: 'long', day: 'numeric' 
-    });
+    document.getElementById('fecha-actual').innerText = fechaHoy;
 </script>
 </body>
 </html>
