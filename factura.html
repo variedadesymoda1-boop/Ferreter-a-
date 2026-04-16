@@ -3,97 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facturación Profesional - Ferretería COP</title>
+    <title>Facturación Profesional COP</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 10px; color: #333; }
+        :root { --primary: #2c3e50; --success: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 10px; }
+        .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .no-print { display: block; }
         
-        /* Navegación */
-        .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 10px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; }
-        
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-factura { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+        /* Estilos para Impresión */
+        @media print {
+            .no-print, .nav-menu, .btn-borrar, .caja-busqueda, .btn-venta { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
+            table { border: 1px solid #000; }
+        }
 
-        /* Formulario Cliente */
-        .form-cliente { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
-        @media (min-width: 600px) { .form-cliente { grid-template-columns: 1fr 1fr; } }
-        label { display: block; font-weight: bold; font-size: 0.9em; margin-bottom: 5px; color: var(--primary); }
-        input, select { padding: 12px; border: 1px solid #999; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 16px; color: #000; }
-
-        /* Buscador Resaltado */
-        .caja-busqueda { background: #eef2f7; padding: 15px; border-radius: 10px; border: 2px solid #d1d9e6; margin-bottom: 20px; }
-
-        /* Tabla de Factura */
-        .tabla-scroll { overflow-x: auto; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 550px; }
-        th { background: #f1f1f1; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-weight: 600; font-size: 15px; }
-
-        /* Totales */
-        .total-box { text-align: right; margin-top: 25px; padding: 15px; border-top: 4px solid var(--primary); background: #fdfdfd; }
-        .total-box p { margin: 0; font-size: 1em; color: #666; }
-        .total-box span { font-size: 2.2em; font-weight: bold; color: var(--primary); display: block; }
-
-        .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.2em; }
-        .btn-borrar { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        input, select { padding: 10px; border: 1px solid #999; border-radius: 6px; width: 100%; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; font-weight: 600; }
+        .total-final { font-size: 2em; font-weight: bold; color: var(--primary); text-align: right; }
+        .btn-venta { background: var(--success); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; }
+        .btn-print { background: #34495e; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="nav-menu">
+<div class="nav-menu no-print">
     <a href="index.html">📦 INVENTARIO</a>
     <a href="factura.html">📄 FACTURACIÓN</a>
 </div>
 
-<div class="container" id="app-body" style="display:none;">
-    <div class="header-factura">
-        <h2 style="margin:0; color:var(--primary);">🇨🇴 Factura de Venta</h2>
-        <small id="fecha-actual" style="color:#666;"></small>
+<div class="container" id="area-factura">
+    <div style="text-align:center;">
+        <h2 style="margin:0;">FERRETERÍA DISTRI</h2>
+        <p>Girardot, Cundinamarca</p>
+        <button class="btn-print no-print" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR PDF</button>
     </div>
 
-    <div class="form-cliente">
-        <div>
-            <label>Nombre del Cliente</label>
-            <input type="text" id="cli-n" placeholder="Ej: Juan Pérez">
-        </div>
-        <div>
-            <label>Cédula o NIT</label>
-            <input type="text" id="cli-id" placeholder="Opcional">
+    <div class="no-print">
+        <input type="text" id="cli" placeholder="Nombre del Cliente">
+        <div style="background:#eef2f7; padding:15px; border-radius:10px; margin-bottom:10px;">
+            <label>🔍 Buscar Producto:</label>
+            <select id="sel-prod" onchange="agregar()"></select>
         </div>
     </div>
 
-    <div class="caja-busqueda">
-        <label>🔍 Agregar Producto a la Factura:</label>
-        <select id="sel-prod" onchange="agregarAlCarrito()">
-            <option value="">-- Buscando productos... --</option>
-        </select>
+    <div id="datos-cliente-print" style="margin-bottom:10px;">
+        <p><b>Cliente:</b> <span id="nombre-cli-ver">Mostrador</span></p>
+        <p><b>Fecha:</b> <span id="fecha-ver"></span></p>
     </div>
 
-    <div class="tabla-scroll">
-        <table>
-            <thead>
-                <tr>
-                    <th>Descripción</th>
-                    <th style="width: 80px;">Cant.</th>
-                    <th>Venta Unit.</th>
-                    <th>Subtotal</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="lista-factura"></tbody>
-        </table>
-    </div>
+    <table>
+        <thead><tr><th>Descripción</th><th>Cant</th><th>Precio</th><th>Subtotal</th><th class="no-print"></th></tr></thead>
+        <tbody id="cuerpo"></tbody>
+    </table>
 
-    <div class="total-box">
-        <p>TOTAL A COBRAR (Pesos Colombianos)</p>
-        <span id="total-final">$ 0</span>
-    </div>
-
-    <button class="btn-venta" onclick="registrarVenta()">🚀 FINALIZAR VENTA Y DESCONTAR STOCK</button>
+    <div class="total-final">TOTAL: <span id="total-html">$ 0</span></div>
+    
+    <button class="btn-venta no-print" onclick="finalizar()">✅ REGISTRAR VENTA</button>
 </div>
 
 <script>
@@ -105,142 +77,53 @@
       messagingSenderId: "507308726712",
       appId: "1:507308726712:web:5c557f79a59b7a561d574d"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
+    const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-    const formatoCOP = new Intl.NumberFormat('es-CO', { 
-        style: 'currency', currency: 'COP', minimumFractionDigits: 0 
+    let carrito = []; let prods = [];
+    document.getElementById('fecha-ver').innerText = new Date().toLocaleDateString();
+
+    db.collection("productos").onSnapshot(snap => {
+        const sel = document.getElementById('sel-prod');
+        sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+        prods = [];
+        snap.forEach(doc => {
+            const p = doc.data(); prods.push({id: doc.id, ...p});
+            if(p.cant > 0) sel.innerHTML += `<option value="${doc.id}">${p.nombre}</option>`;
+        });
     });
 
-    let carrito = [];
-    let productosCloud = [];
+    function agregar() {
+        const id = document.getElementById('sel-prod').value;
+        const p = prods.find(x => x.id === id);
+        carrito.push({ ...p, cantidad: 1 });
+        dibujar();
+    }
 
-    // Seguridad: Verificar sesión
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            document.getElementById('app-body').style.display = 'block';
-            cargarProductosDeInventario();
-        } else {
-            window.location.href = "index.html";
-        }
-    });
-
-    // Cargar lo que hay en el inventario para poder venderlo
-    function cargarProductosDeInventario() {
-        db.collection("productos").onSnapshot((snap) => {
-            const select = document.getElementById('sel-prod');
-            select.innerHTML = '<option value="">-- Selecciona para agregar --</option>';
-            productosCloud = [];
-            snap.forEach((doc) => {
-                const p = doc.data();
-                productosCloud.push({ id: doc.id, ...p });
-                if(p.cant > 0) {
-                    select.innerHTML += `<option value="${doc.id}">${p.nombre} (Stock: ${p.cant})</option>`;
-                }
-            });
+    function dibujar() {
+        const c = document.getElementById('cuerpo'); c.innerHTML = "";
+        let t = 0;
+        document.getElementById('nombre-cli-ver').innerText = document.getElementById('cli').value || "Mostrador";
+        carrito.forEach((item, i) => {
+            const sub = item.p_v * item.cantidad; t += sub;
+            c.innerHTML += `<tr><td>${item.nombre}</td><td>${item.cantidad}</td><td>${formato.format(item.p_v)}</td><td>${formato.format(sub)}</td><td class="no-print"><button onclick="carrito.splice(${i},1); dibujar();">X</button></td></tr>`;
         });
+        document.getElementById('total-html').innerText = formato.format(t);
     }
 
-    // AGREGAR PRODUCTOS A LA MISMA FACTURA
-    function agregarAlCarrito() {
-        const idSeleccionado = document.getElementById('sel-prod').value;
-        if(!idSeleccionado) return;
-
-        const prodOriginal = productosCloud.find(x => x.id === idSeleccionado);
-        const yaEstaEnFactura = carrito.find(x => x.id === idSeleccionado);
-
-        if(yaEstaEnFactura) {
-            if(yaEstaEnFactura.cantidad < prodOriginal.cant) {
-                yaEstaEnFactura.cantidad++;
-            } else {
-                alert("Ya no hay más stock disponible de este producto.");
-            }
-        } else {
-            // Agregamos un nuevo producto a la lista de la factura
-            carrito.push({
-                id: prodOriginal.id,
-                nombre: prodOriginal.nombre,
-                precioVenta: prodOriginal.p_v, // PRECIO DE VENTA AL CLIENTE
-                cantidad: 1,
-                stockMax: prodOriginal.cant
-            });
-        }
-        document.getElementById('sel-prod').value = ""; // Limpiar buscador
-        actualizarTablaFactura();
-    }
-
-    function actualizarTablaFactura() {
-        const tabla = document.getElementById('lista-factura');
-        tabla.innerHTML = "";
-        let sumaTotal = 0;
-
-        carrito.forEach((item, index) => {
-            const subtotal = item.precioVenta * item.cantidad;
-            sumaTotal += subtotal;
-
-            tabla.innerHTML += `
-                <tr>
-                    <td>${item.nombre}</td>
-                    <td><input type="number" value="${item.cantidad}" onchange="cambiarCantidad(${index}, this.value)" min="1" style="width:60px"></td>
-                    <td>${formatoCOP.format(item.precioVenta)}</td>
-                    <td>${formatoCOP.format(subtotal)}</td>
-                    <td><button class="btn-borrar" onclick="quitarDeFactura(${index})">Eliminar</button></td>
-                </tr>`;
-        });
-        document.getElementById('total-final').innerText = formatoCOP.format(sumaTotal);
-    }
-
-    function cambiarCantidad(index, valor) {
-        const nuevaCant = parseInt(valor);
-        if(nuevaCant > carrito[index].stockMax) {
-            alert("Atención: Solo tienes " + carrito[index].stockMax + " unidades.");
-            carrito[index].cantidad = carrito[index].stockMax;
-        } else {
-            carrito[index].cantidad = nuevaCant > 0 ? nuevaCant : 1;
-        }
-        actualizarTablaFactura();
-    }
-
-    function quitarDeFactura(index) {
-        carrito.splice(index, 1);
-        actualizarTablaFactura();
-    }
-
-    async function registrarVenta() {
-        if(carrito.length === 0) return alert("La factura está vacía.");
-        
-        const datosVenta = {
-            cliente: document.getElementById('cli-n').value || "Cliente de Mostrador",
-            documento: document.getElementById('cli-id').value || "N/A",
-            productosVendidos: carrito,
-            totalCobrado: carrito.reduce((sum, item) => sum + (item.precioVenta * item.cantidad), 0),
-            fechaHora: new Date().toLocaleString('es-CO')
-        };
-
+    async function finalizar() {
+        if(carrito.length === 0) return alert("Factura vacía");
         try {
-            // 1. Guardar la venta en la nube
-            await db.collection("ventas").add(datosVenta);
-            
-            // 2. DESCONTAR AUTOMÁTICAMENTE DEL INVENTARIO
-            for (const item of carrito) {
-                const refProducto = db.collection("productos").doc(item.id);
-                const snap = await refProducto.get();
-                const stockActual = snap.data().cant;
-                await refProducto.update({ cant: stockActual - item.cantidad });
+            for(const item of carrito) {
+                const ref = db.collection("productos").doc(item.id);
+                const actual = await ref.get();
+                await ref.update({ cant: actual.data().cant - 1 });
             }
-
-            alert("✅ Factura Guardada y Stock Actualizado con éxito.");
+            alert("Venta registrada");
             location.reload();
-        } catch (error) {
-            alert("Error al procesar: " + error.message);
-        }
+        } catch(e) { alert("Error"); }
     }
-
-    document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-CO', { 
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-    });
 </script>
 </body>
 </html>
