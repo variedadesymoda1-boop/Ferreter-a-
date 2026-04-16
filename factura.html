@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facturación Cloud - Ferretería</title>
+    <title>Facturación Profesional - Ferretería COP</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --accent: #f39c12; }
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 10px; color: #333; }
         
-        /* Menú superior */
+        /* Navegación */
         .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 10px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; }
         
         .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .header-factura { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
 
-        /* Formulario cliente */
+        /* Formulario Cliente */
         .form-cliente { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
         @media (min-width: 600px) { .form-cliente { grid-template-columns: 1fr 1fr; } }
         label { display: block; font-weight: bold; font-size: 0.9em; margin-bottom: 5px; color: var(--primary); }
-        input, select { padding: 12px; border: 1px solid #999; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 16px; }
+        input, select { padding: 12px; border: 1px solid #999; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 16px; color: #000; }
 
-        /* Buscador de productos */
-        .caja-busqueda { background: #eef2f7; padding: 15px; border-radius: 10px; border: 1px solid #d1d9e6; margin-bottom: 20px; }
+        /* Buscador Resaltado */
+        .caja-busqueda { background: #eef2f7; padding: 15px; border-radius: 10px; border: 2px solid #d1d9e6; margin-bottom: 20px; }
 
-        /* Tabla adaptable */
+        /* Tabla de Factura */
         .tabla-scroll { overflow-x: auto; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-weight: 500; }
+        table { width: 100%; border-collapse: collapse; min-width: 550px; }
+        th { background: #f1f1f1; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-weight: 600; font-size: 15px; }
 
-        .total-box { text-align: right; margin-top: 25px; padding: 15px; border-top: 3px solid var(--primary); }
-        .total-box span { font-size: 2em; font-weight: bold; color: var(--primary); display: block; }
+        /* Totales */
+        .total-box { text-align: right; margin-top: 25px; padding: 15px; border-top: 4px solid var(--primary); background: #fdfdfd; }
+        .total-box p { margin: 0; font-size: 1em; color: #666; }
+        .total-box span { font-size: 2.2em; font-weight: bold; color: var(--primary); display: block; }
 
-        .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.2em; transition: 0.3s; }
-        .btn-venta:active { transform: scale(0.97); }
-        .btn-borrar { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+        .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.2em; }
+        .btn-borrar { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -50,25 +51,25 @@
 
 <div class="container" id="app-body" style="display:none;">
     <div class="header-factura">
-        <h2 style="margin:0; color:var(--primary);">📄 Nueva Venta Cloud</h2>
+        <h2 style="margin:0; color:var(--primary);">🇨🇴 Factura de Venta</h2>
         <small id="fecha-actual" style="color:#666;"></small>
     </div>
 
     <div class="form-cliente">
         <div>
-            <label>Cliente</label>
-            <input type="text" id="cliente-n" placeholder="Nombre">
+            <label>Nombre del Cliente</label>
+            <input type="text" id="cli-n" placeholder="Ej: Juan Pérez">
         </div>
         <div>
-            <label>Cédula / NIT</label>
-            <input type="text" id="cliente-id" placeholder="Opcional">
+            <label>Cédula o NIT</label>
+            <input type="text" id="cli-id" placeholder="Opcional">
         </div>
     </div>
 
     <div class="caja-busqueda">
-        <label>🔍 Buscar Producto en Inventario:</label>
-        <select id="sel-prod" onchange="agregar()">
-            <option value="">-- Cargando productos... --</option>
+        <label>🔍 Agregar Producto a la Factura:</label>
+        <select id="sel-prod" onchange="agregarAlCarrito()">
+            <option value="">-- Buscando productos... --</option>
         </select>
     </div>
 
@@ -76,26 +77,26 @@
         <table>
             <thead>
                 <tr>
-                    <th>Producto</th>
-                    <th style="width: 80px;">Cant</th>
+                    <th>Descripción</th>
+                    <th style="width: 80px;">Cant.</th>
+                    <th>Venta Unit.</th>
                     <th>Subtotal</th>
                     <th></th>
                 </tr>
             </thead>
-            <tbody id="cuerpo"></tbody>
+            <tbody id="lista-factura"></tbody>
         </table>
     </div>
 
     <div class="total-box">
-        <label>TOTAL A PAGAR:</label>
-        <span id="total-html">$ 0</span>
+        <p>TOTAL A COBRAR (Pesos Colombianos)</p>
+        <span id="total-final">$ 0</span>
     </div>
 
-    <button class="btn-venta" onclick="finalizar()">✅ REGISTRAR VENTA Y DESCONTAR STOCK</button>
+    <button class="btn-venta" onclick="registrarVenta()">🚀 FINALIZAR VENTA Y DESCONTAR STOCK</button>
 </div>
 
 <script>
-    // TUS LLAVES DE FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyBbsO9WwtptjDTCetZOauYVPCXCzJbZB30",
       authDomain: "ferreteria-distri-app-6d960.firebaseapp.com",
@@ -108,116 +109,138 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+    const formatoCOP = new Intl.NumberFormat('es-CO', { 
+        style: 'currency', currency: 'COP', minimumFractionDigits: 0 
+    });
 
     let carrito = [];
-    let prodsDB = [];
+    let productosCloud = [];
 
-    // --- SEGURIDAD: VERIFICAR QUE ESTÉ LOGUEADO ---
+    // Seguridad: Verificar sesión
     auth.onAuthStateChanged((user) => {
         if (user) {
             document.getElementById('app-body').style.display = 'block';
-            cargarProds();
+            cargarProductosDeInventario();
         } else {
-            // Si no hay sesión, lo manda al login de index.html
             window.location.href = "index.html";
         }
     });
 
-    function cargarProds() {
+    // Cargar lo que hay en el inventario para poder venderlo
+    function cargarProductosDeInventario() {
         db.collection("productos").onSnapshot((snap) => {
-            const sel = document.getElementById('sel-prod');
-            sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-            prodsDB = [];
+            const select = document.getElementById('sel-prod');
+            select.innerHTML = '<option value="">-- Selecciona para agregar --</option>';
+            productosCloud = [];
             snap.forEach((doc) => {
                 const p = doc.data();
-                prodsDB.push({ id: doc.id, ...p });
+                productosCloud.push({ id: doc.id, ...p });
                 if(p.cant > 0) {
-                    sel.innerHTML += `<option value="${doc.id}">${p.nombre} (Dispo: ${p.cant})</option>`;
+                    select.innerHTML += `<option value="${doc.id}">${p.nombre} (Stock: ${p.cant})</option>`;
                 }
             });
         });
     }
 
-    function agregar() {
-        const id = document.getElementById('sel-prod').value;
-        if(!id) return;
-        const p = prodsDB.find(x => x.id === id);
-        const ya = carrito.find(x => x.id === id);
+    // AGREGAR PRODUCTOS A LA MISMA FACTURA
+    function agregarAlCarrito() {
+        const idSeleccionado = document.getElementById('sel-prod').value;
+        if(!idSeleccionado) return;
 
-        if(ya) {
-            if(ya.cantidad < p.cant) ya.cantidad++;
-            else alert("No hay más stock");
+        const prodOriginal = productosCloud.find(x => x.id === idSeleccionado);
+        const yaEstaEnFactura = carrito.find(x => x.id === idSeleccionado);
+
+        if(yaEstaEnFactura) {
+            if(yaEstaEnFactura.cantidad < prodOriginal.cant) {
+                yaEstaEnFactura.cantidad++;
+            } else {
+                alert("Ya no hay más stock disponible de este producto.");
+            }
         } else {
-            carrito.push({ id: p.id, nombre: p.nombre, precio: p.p_v, cantidad: 1, stockMax: p.cant });
+            // Agregamos un nuevo producto a la lista de la factura
+            carrito.push({
+                id: prodOriginal.id,
+                nombre: prodOriginal.nombre,
+                precioVenta: prodOriginal.p_v, // PRECIO DE VENTA AL CLIENTE
+                cantidad: 1,
+                stockMax: prodOriginal.cant
+            });
         }
-        document.getElementById('sel-prod').value = "";
-        dibujar();
+        document.getElementById('sel-prod').value = ""; // Limpiar buscador
+        actualizarTablaFactura();
     }
 
-    function dibujar() {
-        const cuerpo = document.getElementById('cuerpo');
-        cuerpo.innerHTML = "";
-        let total = 0;
-        carrito.forEach((item, i) => {
-            const sub = item.precio * item.cantidad;
-            total += sub;
-            cuerpo.innerHTML += `
+    function actualizarTablaFactura() {
+        const tabla = document.getElementById('lista-factura');
+        tabla.innerHTML = "";
+        let sumaTotal = 0;
+
+        carrito.forEach((item, index) => {
+            const subtotal = item.precioVenta * item.cantidad;
+            sumaTotal += subtotal;
+
+            tabla.innerHTML += `
                 <tr>
-                    <td><b>${item.nombre}</b><br><small>${formato.format(item.precio)}</small></td>
-                    <td><input type="number" value="${item.cantidad}" onchange="editCant(${i}, this.value)" min="1" style="width:50px"></td>
-                    <td><b>${formato.format(sub)}</b></td>
-                    <td><button class="btn-borrar" onclick="borrarItem(${i})">X</button></td>
+                    <td>${item.nombre}</td>
+                    <td><input type="number" value="${item.cantidad}" onchange="cambiarCantidad(${index}, this.value)" min="1" style="width:60px"></td>
+                    <td>${formatoCOP.format(item.precioVenta)}</td>
+                    <td>${formatoCOP.format(subtotal)}</td>
+                    <td><button class="btn-borrar" onclick="quitarDeFactura(${index})">Eliminar</button></td>
                 </tr>`;
         });
-        document.getElementById('total-html').innerText = formato.format(total);
+        document.getElementById('total-final').innerText = formatoCOP.format(sumaTotal);
     }
 
-    function editCant(i, v) {
-        const n = parseInt(v);
-        if(n > carrito[i].stockMax) {
-            alert("Solo hay " + carrito[i].stockMax + " disponibles");
-            carrito[i].cantidad = carrito[i].stockMax;
+    function cambiarCantidad(index, valor) {
+        const nuevaCant = parseInt(valor);
+        if(nuevaCant > carrito[index].stockMax) {
+            alert("Atención: Solo tienes " + carrito[index].stockMax + " unidades.");
+            carrito[index].cantidad = carrito[index].stockMax;
         } else {
-            carrito[i].cantidad = n > 0 ? n : 1;
+            carrito[index].cantidad = nuevaCant > 0 ? nuevaCant : 1;
         }
-        dibujar();
+        actualizarTablaFactura();
     }
 
-    function borrarItem(i) {
-        carrito.splice(i, 1);
-        dibujar();
+    function quitarDeFactura(index) {
+        carrito.splice(index, 1);
+        actualizarTablaFactura();
     }
 
-    async function finalizar() {
-        if(carrito.length === 0) return alert("Agrega productos");
+    async function registrarVenta() {
+        if(carrito.length === 0) return alert("La factura está vacía.");
         
-        const venta = {
-            cliente: document.getElementById('cliente-n').value || "Mostrador",
-            id: document.getElementById('cliente-id').value || "N/A",
-            items: carrito,
-            total: carrito.reduce((t, i) => t + (i.precio * i.cantidad), 0),
-            fecha: new Date().getTime(),
-            fechaTxt: new Date().toLocaleString()
+        const datosVenta = {
+            cliente: document.getElementById('cli-n').value || "Cliente de Mostrador",
+            documento: document.getElementById('cli-id').value || "N/A",
+            productosVendidos: carrito,
+            totalCobrado: carrito.reduce((sum, item) => sum + (item.precioVenta * item.cantidad), 0),
+            fechaHora: new Date().toLocaleString('es-CO')
         };
 
         try {
-            // Guardar venta
-            await db.collection("ventas").add(venta);
+            // 1. Guardar la venta en la nube
+            await db.collection("ventas").add(datosVenta);
             
-            // Actualizar stock en tiempo real
+            // 2. DESCONTAR AUTOMÁTICAMENTE DEL INVENTARIO
             for (const item of carrito) {
-                const ref = db.collection("productos").doc(item.id);
-                const actual = await ref.get();
-                await ref.update({ cant: actual.data().cant - item.cantidad });
+                const refProducto = db.collection("productos").doc(item.id);
+                const snap = await refProducto.get();
+                const stockActual = snap.data().cant;
+                await refProducto.update({ cant: stockActual - item.cantidad });
             }
 
-            alert("✅ Venta registrada y stock actualizado");
+            alert("✅ Factura Guardada y Stock Actualizado con éxito.");
             location.reload();
-        } catch (e) { alert("Error: " + e.message); }
+        } catch (error) {
+            alert("Error al procesar: " + error.message);
+        }
     }
 
-    document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString();
+    document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-CO', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    });
 </script>
 </body>
 </html>
