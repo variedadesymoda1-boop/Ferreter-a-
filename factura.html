@@ -1,1 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facturación - Ferretería</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; padding: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        
+        h1 { text-align: center; color: var(--primary); border-bottom: 3px solid var(--secondary); }
+        
+        .seccion { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
 
+        .grid-inputs { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: var(--primary); color: white; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+
+        .total-box { background: var(--primary); color: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: right; }
+        .vueltos-box { background: #e8f4fd; padding: 15px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #2980b9; }
+
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-add { background: var(--success); }
+        .btn-print { background: var(--primary); width: 100%; margin-top: 15px; font-size: 1.1em; }
+        
+        @media print {
+            .no-print { display: none; }
+            .container { box-shadow: none; border: none; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📄 Factura de Venta</h1>
+
+    <div class="seccion no-print">
+        <label>Cliente:</label>
+        <input type="text" id="cliente_nombre" placeholder="Nombre completo">
+    </div>
+
+    <div class="seccion no-print">
+        <label>Agregar Producto:</label>
+        <div class="grid-inputs">
+            <input type="text" id="prod_nombre" placeholder="Nombre del producto" list="lista_sugerencias">
+            <datalist id="lista_sugerencias"></datalist> <input type="number" id="prod_cant" placeholder="Cant" value="1">
+            <input type="number" id="prod_precio" placeholder="Precio Venta">
+            <button class="btn btn-add" onclick="agregarALaFactura()">+</button>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cant.</th>
+                <th>Descripción</th>
+                <th>Precio Unit.</th>
+                <th>Total</th>
+                <th class="no-print">X</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpo-factura"></tbody>
+    </table>
+
+    <div class="total-box">
+        <div style="font-size: 1.2em;">Total a Pagar:</div>
+        <div id="gran-total" style="font-size: 2em; font-weight: bold;">$ 0</div>
+    </div>
+
+    <div class="seccion vueltos-box no-print">
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="flex: 1;">
+                <label>Pagó con:</label>
+                <input type="number" id="pago_cliente" onkeyup="calcularVueltos()" placeholder="Ej: 50000">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <label>Su cambio (Vueltos):</label>
+                <div id="vueltos-resultado" style="font-size: 1.5em; color: #2980b9; font-weight: bold;">$ 0</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-print no-print" onclick="window.print()">🖨️ Imprimir / Guardar Factura</button>
+</div>
+
+<script>
+    let itemsFactura = [];
+    const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+    // Cargar sugerencias desde el almacenamiento de tu otra página
+    document.addEventListener('DOMContentLoaded', () => {
+        const inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
+        const datalist = document.getElementById('lista_sugerencias');
+        inv.forEach(p => {
+            let opcion = document.createElement('option');
+            opcion.value = p.nombre;
+            // Guardamos el precio en un atributo oculto para recuperarlo
+            opcion.dataset.precio = p.p_v; 
+            datalist.appendChild(opcion);
+        });
+    });
+
+    // Autocompletar precio cuando elijas un producto del inventario
+    document.getElementById('prod_nombre').addEventListener('input', function(e) {
+        const valor = e.target.value;
+        const lista = document.getElementById('lista_sugerencias');
+        const opcion = Array.from(lista.options).find(o => o.value === valor);
+        if(opcion) {
+            document.getElementById('prod_precio').value = opcion.dataset.precio;
+        }
+    });
+
+    function agregarALaFactura() {
+        const nombre = document.getElementById('prod_nombre').value;
+        const cant = parseInt(document.getElementById('prod_cant').value);
+        const precio = parseFloat(document.getElementById('prod_precio').value);
+
+        if(nombre && cant > 0 && precio > 0) {
+            itemsFactura.push({ nombre, cant, precio });
+            actualizarTabla();
+            document.getElementById('prod_nombre').value = '';
+            document.getElementById('prod_precio').value = '';
+            document.getElementById('prod_cant').value = '1';
+        }
+    }
+
+    function actualizarTabla() {
+        const cuerpo = document.getElementById('cuerpo-factura');
+        cuerpo.innerHTML = '';
+        let suma = 0;
+
+        itemsFactura.forEach((item, index) => {
+            const total = item.cant * item.precio;
+            suma += total;
+            cuerpo.innerHTML += `
+                <tr>
+                    <td>${item.cant}</td>
+                    <td>${item.nombre}</td>
+                    <td>${formatoCOP.format(item.precio)}</td>
+                    <td>${formatoCOP.format(total)}</td>
+                    <td class="no-print"><button onclick="eliminarItem(${index})" style="background:red; color:white; border:none; border-radius:3px;">X</button></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('gran-total').innerText = formatoCOP.format(suma);
+        window.totalVenta = suma;
+        calcularVueltos();
+    }
+
+    function eliminarItem(index) {
+        itemsFactura.splice(index, 1);
+        actualizarTabla();
+    }
+
+    function calcularVueltos() {
+        const pago = parseFloat(document.getElementById('pago_cliente').value) || 0;
+        const vueltos = pago - window.totalVenta;
+        const divVueltos = document.getElementById('vueltos-resultado');
+        
+        if (vueltos >= 0) {
+            divVueltos.innerText = formatoCOP.format(vueltos);
+            divVueltos.style.color = "#2980b9";
+        } else {
+            divVueltos.innerText = "Falta dinero";
+            divVueltos.style.color = "red";
+        }
+    }
+</script>
+
+</body>
+</html>
