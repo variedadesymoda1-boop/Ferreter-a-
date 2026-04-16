@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Ferretería - Control COP</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; --info: #2980b9; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); border-bottom: 4px solid var(--secondary); padding-bottom: 10px; }
+        
+        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #fdfdfd; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
+        input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        input:focus { border-color: var(--secondary); outline: none; }
+        
+        button { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
+        .btn-add { background: var(--success); }
+        .btn-export { background: var(--info); }
+        .btn-action { padding: 5px 8px; font-size: 12px; margin: 2px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th { background: var(--primary); color: white; padding: 12px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        
+        .stock-bajo { background: #fff3cd; color: #856404; font-weight: bold; border-radius: 4px; padding: 5px; border: 1px solid #ffeeba; }
+        .ganancia-tag { color: var(--success); font-weight: bold; }
+        
+        .resumen-financiero { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .card-total { padding: 20px; border-radius: 10px; color: white; text-align: right; }
+        .total-inv { background: var(--primary); }
+        .total-gan { background: var(--success); }
+        
+        .search-bar { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🇨🇴 Control de Inventario y Ganancias</h1>
+    
+    <div class="form-group">
+        <input type="text" id="nombre" placeholder="Nombre del Producto">
+        <input type="number" id="cantidad" placeholder="Cant. Stock">
+        <input type="number" id="precio_c" placeholder="Precio Compra ($)">
+        <input type="number" id="precio_v" placeholder="Precio Venta ($)">
+        <button class="btn-add" onclick="agregarProducto()">+ Registrar</button>
+        <button class="btn-export" onclick="exportarCSV()">📥 Excel</button>
+    </div>
+
+    <input type="text" id="buscador" class="search-bar" placeholder="🔍 Buscar por nombre..." onkeyup="mostrarInventario()">
+
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th>Stock</th>
+                    <th>Compra</th>
+                    <th>Venta</th>
+                    <th>Utilidad Un.</th>
+                    <th>Margen %</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="lista-inventario"></tbody>
+        </table>
+    </div>
+
+    <div class="resumen-financiero">
+        <div class="card-total total-inv">
+            <small>Inversión Total en Stock</small>
+            <div id="total-inversion" style="font-size: 1.5em;">$0</div>
+        </div>
+        <div class="card-total total-gan">
+            <small>Ganancia Proyectada Total</small>
+            <div id="total-utilidad" style="font-size: 1.5em;">$0</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', mostrarInventario);
+
+    // Formateador de moneda colombiana
+    const formatoCOP = new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    });
+
+    function agregarProducto() {
+        const nombre = document.getElementById('nombre').value;
+        const cant = parseInt(document.getElementById('cantidad').value);
+        const p_compra = parseFloat(document.getElementById('precio_c').value);
+        const p_venta = parseFloat(document.getElementById('precio_v').value);
+
+        if(nombre && !isNaN(cant) && !isNaN(p_compra) && !isNaN(p_venta)) {
+            const inv = JSON.parse(localStorage.getItem('ferreteria_pro')) || [];
+            inv.push({ id: Date.now(), nombre, cant, p_compra, p_venta });
+            localStorage.setItem('ferreteria_pro', JSON.stringify(inv));
+            limpiarInputs();
+            mostrarInventario();
+        } else { alert("Por favor completa todos los datos financieros."); }
+    }
+
+    function mostrarInventario() {
+        const lista = document.getElementById('lista-inventario');
+        const filtro = document.getElementById('buscador').value.toLowerCase();
+        let inv = JSON.parse(localStorage.getItem('ferreteria_pro')) || [];
+        
+        lista.innerHTML = '';
+        let totalInv = 0;
+        let totalUtil = 0;
+
+        inv.filter(p => p.nombre.toLowerCase().includes(filtro)).forEach((p, i) => {
+            const utilidadUnit = p.p_venta - p_compra;
+            const margen = ((utilidadUnit / p.p_venta) * 100).toFixed(1);
+            totalInv += (p.cant * p.p_compra);
+            totalUtil += (p.cant * utilidadUnit);
+
+            const stockClase = p.cant <= 5 ? 'class="stock-bajo"' : '';
+
+            lista.innerHTML += `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td ${stockClase}>${p.cant}</td>
+                    <td>${formatoCOP.format(p.p_compra)}</td>
+                    <td>${formatoCOP.format(p.p_venta)}</td>
+                    <td class="ganancia-tag">${formatoCOP.format(utilidadUnit)}</td>
+                    <td>${margen}%</td>
+                    <td>
+                        <button class="btn-action" style="background:#27ae60" onclick="cambiarStock(${p.id}, 1)">+</button>
+                        <button class="btn-action" style="background:#e67e22" onclick="cambiarStock(${p.id}, -1)">-</button>
+                        <button class="btn-action" style="background:#c0392b" onclick="eliminar(${p.id})">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('total-inversion').innerText = formatoCOP.format(totalInv);
+        document.getElementById('total-utilidad').innerText = formatoCOP.format(totalUtil);
+    }
+
+    function cambiarStock(id, cantidad) {
+        let inv = JSON.parse(localStorage.getItem('ferreteria_pro'));
+        const p = inv.find(item => item.id === id);
+        if(p.cant + cantidad >= 0) {
+            p.cant += cantidad;
+            localStorage.setItem('ferreteria_pro', JSON.stringify(inv));
+            mostrarInventario();
+        }
+    }
+
+    function eliminar(id) {
+        if(confirm("¿Seguro que quieres borrar este producto?")) {
+            let inv = JSON.parse(localStorage.getItem('ferreteria_pro')).filter(p => p.id !== id);
+            localStorage.setItem('ferreteria_pro', JSON.stringify(inv));
+            mostrarInventario();
+        }
+    }
+
+    function limpiarInputs() {
+        document.getElementById('nombre').value = '';
+        document.getElementById('cantidad').value = '';
+        document.getElementById('precio_c').value = '';
+        document.getElementById('precio_v').value = '';
+    }
+
+    function exportarCSV() {
+        let inv = JSON.parse(localStorage.getItem('ferreteria_pro')) || [];
+        let csv = "\uFEFFNombre,Stock,Costo,Venta,Utilidad,Margen%\n"; // uFEFF para Excel y tildes
+        inv.forEach(p => {
+            csv += `${p.nombre},${p.cant},${p.p_compra},${p.p_venta},${p.p_venta-p.p_compra},${(((p.p_venta-p.p_compra)/p.p_venta)*100).toFixed(2)}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", "Inventario_Ferreteria_COP.csv");
+        link.click();
+    }
+</script>
+</body>
+</html>
+
