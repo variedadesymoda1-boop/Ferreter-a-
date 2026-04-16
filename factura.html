@@ -3,191 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facturación - Ferretería</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Facturación Cloud - Adaptable</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 0; }
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --accent: #f39c12; }
         
-        /* Bloqueo */
-        #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        #contenido-sistema { display: none; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; padding: 10px; color: #333; }
+        
+        /* Menú Adaptable */
+        .nav-menu { background: var(--primary); padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); font-size: 14px; }
+        
+        .container { max-width: 900px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .nav-menu { background: var(--primary); padding: 15px; text-align: center; margin-bottom: 20px; }
-        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
+        .header-factura { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
         
-        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        
-        /* Estilo de la Factura */
-        #area-factura { padding: 20px; border: 1px solid #eee; }
-        .header-factura { border-bottom: 2px solid var(--primary); margin-bottom: 20px; padding-bottom: 10px; }
-        
-        .grid-cliente { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fa; padding: 10px; border: 1px solid #ddd; text-align: left; }
-        td { padding: 10px; border: 1px solid #ddd; }
+        /* Formulario del Cliente adaptable */
+        .form-cliente { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 600px) { .form-cliente { grid-template-columns: 1fr 1fr; } }
 
-        .total-box { background: var(--primary); color: white; padding: 15px; text-align: right; margin-top: 20px; border-radius: 8px; }
+        input, select { padding: 12px; border: 1px solid #999; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 16px; color: #000; }
+
+        /* Buscador de productos resaltado */
+        .buscador-caja { background: #eef2f7; padding: 15px; border-radius: 10px; border: 1px solid #d1d9e6; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
+
+        /* Tabla Adaptable */
+        .tabla-scroll { overflow-x: auto; margin-top: 10px; border-radius: 8px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 13px; color: #666; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 15px; font-weight: 500; }
+
+        .total-box { text-align: right; margin-top: 25px; padding: 15px; border-top: 2px solid var(--primary); }
+        .total-box span { font-size: 1.8em; font-weight: bold; color: var(--primary); display: block; }
+
+        .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.1em; transition: 0.3s; }
+        .btn-venta:active { transform: scale(0.98); background: #219150; }
         
-        .botones-accion { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
-        
-        @media print { .no-print { display: none; } }
+        .btn-eliminar { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="bloqueo">
-    <div style="background:white; padding:30px; border-radius:12px; color:#333; text-align:center;">
-        <h2>🔒 Seguridad</h2>
-        <input type="password" id="clave-input" placeholder="Clave">
-        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:10px; margin-top:10px; width:100%; border-radius:5px;">Entrar</button>
-    </div>
+<div class="nav-menu">
+    <a href="index.html">📦 INVENTARIO</a>
+    <a href="factura.html">📄 FACTURACIÓN</a>
 </div>
 
-<div id="contenido-sistema">
-    <div class="nav-menu no-print">
-        <a href="index.html">📦 INVENTARIO</a>
-        <a href="factura.html">📄 FACTURACIÓN</a>
+<div class="container">
+    <div class="header-factura">
+        <h2 style="margin:0; color:var(--primary);">🇨🇴 Factura Cloud</h2>
+        <small id="fecha-hoy" style="color:#777;"></small>
     </div>
 
-    <div class="container">
-        <div class="no-print">
-            <div class="grid-cliente">
-                <input type="text" id="c_nombre" placeholder="Nombre Cliente">
-                <input type="text" id="c_celular" placeholder="Celular">
-                <input type="text" id="c_dir" placeholder="Dirección">
-                <select id="c_estado"><option value="Entregado">Entregado ✅</option><option value="Pendiente">Pendiente ⏳</option></select>
-            </div>
-            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:5px">
-                <input type="text" id="p_nombre" placeholder="Producto" list="lista_prod">
-                <datalist id="lista_prod"></datalist>
-                <input type="number" id="p_cant" placeholder="Cant" value="1">
-                <input type="number" id="p_precio" placeholder="Precio">
-                <button onclick="agregarItem()" style="background:var(--success); color:white; border:none; border-radius:5px; padding:10px">+</button>
-            </div>
+    <div class="form-cliente">
+        <div>
+            <label>Nombre del Cliente</label>
+            <input type="text" id="cliente-nombre" placeholder="Ej: Juan Pérez">
         </div>
-
-        <div id="area-factura">
-            <div class="header-factura">
-                <h2 style="margin:0; color:var(--primary)">FERRETERÍA / DISTRI</h2>
-                <p style="margin:5px 0" id="f-fecha"></p>
-            </div>
-            
-            <div id="datos-cliente-ver">
-                <p><b>Cliente:</b> <span id="v-nombre"></span> | <b>Tel:</b> <span id="v-celular"></span></p>
-                <p><b>Dirección:</b> <span id="v-dir"></span></p>
-            </div>
-
-            <table>
-                <thead><tr><th>Cant</th><th>Descripción</th><th>Precio</th><th>Total</th></tr></thead>
-                <tbody id="tabla-cuerpo"></tbody>
-            </table>
-
-            <div class="total-box">
-                <span style="font-size:1.2em">TOTAL A PAGAR:</span><br>
-                <span id="v-total" style="font-size:2em; font-weight:bold">$ 0</span>
-            </div>
-        </div>
-
-        <div class="botones-accion no-print">
-            <button class="btn" style="background:var(--primary)" onclick="guardarYDescargarPDF()">📥 Descargar PDF y Guardar</button>
-            <button class="btn" style="background:var(--secondary)" onclick="window.print()">🖨️ Solo Imprimir</button>
+        <div>
+            <label>Cédula / NIT</label>
+            <input type="text" id="cliente-cc" placeholder="Opcional">
         </div>
     </div>
+
+    <div class="buscador-caja">
+        <label>🔍 Seleccionar Producto del Inventario:</label>
+        <select id="select-producto" onchange="agregarAlCarrito()">
+            <option value="">-- Buscando en la nube... --</option>
+        </select>
+    </div>
+
+    <div class="tabla-scroll">
+        <table id="tabla-factura">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th style="width: 70px;">Cant</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-factura"></tbody>
+        </table>
+    </div>
+
+    <div class="total-box">
+        <label>VALOR TOTAL A COBRAR:</label>
+        <span id="total-factura">$ 0</span>
+    </div>
+
+    <button class="btn-venta" onclick="finalizarVenta()">🚀 REGISTRAR VENTA Y ACTUALIZAR STOCK</button>
 </div>
 
 <script>
-    const CLAVE_MAESTRA = "ferreteria/distri$34";
-    const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-    let facturaItems = [];
+    // TU CONFIGURACIÓN DE FIREBASE (Mantenemos la misma)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbsO9WwtptjDTCetZOauYVPCXCzJbZB30",
+      authDomain: "ferreteria-distri-app-6d960.firebaseapp.com",
+      projectId: "ferreteria-distri-app-6d960",
+      storageBucket: "ferreteria-distri-app-6d960.firebasestorage.app",
+      messagingSenderId: "507308726712",
+      appId: "1:507308726712:web:5c557f79a59b7a561d574d"
+    };
 
-    function validarClave() {
-        if(document.getElementById('clave-input').value === CLAVE_MAESTRA) {
-            document.getElementById('bloqueo').style.display = 'none';
-            document.getElementById('contenido-sistema').style.display = 'block';
-            cargarSugerencias();
-        }
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const formato = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-    function cargarSugerencias() {
-        const inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
-        const list = document.getElementById('lista_prod');
-        inv.forEach(p => {
-            let op = document.createElement('option');
-            op.value = p.nombre; op.dataset.precio = p.p_v;
-            list.appendChild(op);
+    let carrito = [];
+    let productosDB = [];
+
+    // Cargar productos desde Firestore
+    function cargarProductos() {
+        db.collection("productos").onSnapshot((snapshot) => {
+            const select = document.getElementById('select-producto');
+            select.innerHTML = '<option value="">-- Elige un producto --</option>';
+            productosDB = [];
+            snapshot.forEach((doc) => {
+                const p = doc.data();
+                productosDB.push({ id: doc.id, ...p });
+                if(p.cant > 0) {
+                    select.innerHTML += `<option value="${doc.id}">${p.nombre} (Stock: ${p.cant})</option>`;
+                }
+            });
         });
     }
 
-    document.getElementById('p_nombre').addEventListener('input', (e) => {
-        const op = Array.from(document.getElementById('lista_prod').options).find(o => o.value === e.target.value);
-        if(op) document.getElementById('p_precio').value = op.dataset.precio;
-    });
-
-    function agregarItem() {
-        const n = document.getElementById('p_nombre').value;
-        const c = parseInt(document.getElementById('p_cant').value);
-        const p = parseFloat(document.getElementById('p_precio').value);
-        if(n && c > 0) {
-            facturaItems.push({n, c, p});
-            actualizarVista();
-            document.getElementById('p_nombre').value = '';
-            document.getElementById('p_precio').value = '';
-        }
-    }
-
-    function actualizarVista() {
-        const cuerpo = document.getElementById('tabla-cuerpo');
-        cuerpo.innerHTML = ''; let total = 0;
+    function agregarAlCarrito() {
+        const id = document.getElementById('select-producto').value;
+        if (!id) return;
+        const prod = productosDB.find(p => p.id === id);
         
-        document.getElementById('v-nombre').innerText = document.getElementById('c_nombre').value;
-        document.getElementById('v-celular').innerText = document.getElementById('c_celular').value;
-        document.getElementById('v-dir').innerText = document.getElementById('c_dir').value;
-        document.getElementById('f-fecha').innerText = "Fecha: " + new Date().toLocaleString();
-
-        facturaItems.forEach(item => {
-            const sub = item.c * item.p; total += sub;
-            cuerpo.innerHTML += `<tr><td>${item.c}</td><td>${item.n}</td><td>${formatoCOP.format(item.p)}</td><td>${formatoCOP.format(sub)}</td></tr>`;
-        });
-        document.getElementById('v-total').innerText = formatoCOP.format(total);
-        window.totalVenta = total;
+        const itemEnCarrito = carrito.find(item => item.id === id);
+        if (itemEnCarrito) {
+            if (itemEnCarrito.cantidad < prod.cant) {
+                itemEnCarrito.cantidad++;
+            } else {
+                alert("No hay más stock disponible de este producto");
+            }
+        } else {
+            carrito.push({ id: id, nombre: prod.nombre, precio: prod.p_v, cantidad: 1, stockMax: prod.cant });
+        }
+        document.getElementById('select-producto').value = ""; // Reset buscador
+        dibujarTabla();
     }
 
-    function guardarYDescargarPDF() {
-        if(facturaItems.length === 0) return alert("Agregue productos primero");
+    function dibujarTabla() {
+        const cuerpo = document.getElementById('cuerpo-factura');
+        cuerpo.innerHTML = '';
+        let total = 0;
 
-        // 1. Guardar en historial
+        carrito.forEach((item, index) => {
+            const subtotal = item.precio * item.cantidad;
+            total += subtotal;
+            cuerpo.innerHTML += `
+                <tr>
+                    <td><b>${item.nombre}</b><br><small style="color:#777">${formato.format(item.precio)} c/u</small></td>
+                    <td><input type="number" value="${item.cantidad}" onchange="cambiarCant(${index}, this.value)" min="1" max="${item.stockMax}"></td>
+                    <td><b>${formato.format(subtotal)}</b></td>
+                    <td><button class="btn-eliminar" onclick="eliminarItem(${index})">🗑️</button></td>
+                </tr>`;
+        });
+        document.getElementById('total-factura').innerText = formato.format(total);
+    }
+
+    function cambiarCant(index, valor) {
+        const nuevaCant = parseInt(valor);
+        if (nuevaCant > carrito[index].stockMax) {
+            alert("Solo hay " + carrito[index].stockMax + " en stock.");
+            carrito[index].cantidad = carrito[index].stockMax;
+        } else {
+            carrito[index].cantidad = nuevaCant > 0 ? nuevaCant : 1;
+        }
+        dibujarTabla();
+    }
+
+    function eliminarItem(index) {
+        carrito.splice(index, 1);
+        dibujarTabla();
+    }
+
+    async function finalizarVenta() {
+        if (carrito.length === 0) return alert("Debes agregar productos a la venta");
+
         const venta = {
-            cliente: document.getElementById('c_nombre').value || "Cliente General",
-            celular: document.getElementById('c_celular').value,
-            direccion: document.getElementById('c_dir').value,
-            estado: document.getElementById('c_estado').value,
-            productos: facturaItems,
-            total: window.totalVenta,
-            fecha: new Date().toLocaleString()
+            cliente: document.getElementById('cliente-nombre').value || "Mostrador",
+            documento: document.getElementById('cliente-cc').value || "N/A",
+            items: carrito,
+            total: carrito.reduce((t, i) => t + (i.precio * i.cantidad), 0),
+            fecha: new Date().getTime(),
+            fechaTexto: new Date().toLocaleString('es-CO')
         };
-        let ventas = JSON.parse(localStorage.getItem('ferre_ventas')) || [];
-        ventas.push(venta);
-        localStorage.setItem('ferre_ventas', JSON.stringify(ventas));
 
-        // 2. Generar PDF
-        const elementoFactura = document.getElementById('area-factura');
-        const opciones = {
-            margin: 1,
-            filename: `Factura_${venta.cliente}_${new Date().getTime()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        
-        html2pdf().set(opciones).from(elementoFactura).save().then(() => {
-            alert("Factura guardada y PDF descargado");
-            location.reload(); // Limpiar todo
-        });
+        try {
+            // Guardar Venta
+            await db.collection("ventas").add(venta);
+            
+            // Restar del Inventario automáticamente
+            for (const item of carrito) {
+                const ref = db.collection("productos").doc(item.id);
+                const snap = await ref.get();
+                if (snap.exists) {
+                    const stockActual = snap.data().cant;
+                    await ref.update({ cant: stockActual - item.cantidad });
+                }
+            }
+
+            alert("✅ Venta exitosa. El inventario se actualizó automáticamente.");
+            carrito = [];
+            document.getElementById('cliente-nombre').value = "";
+            document.getElementById('cliente-cc').value = "";
+            dibujarTabla();
+
+        } catch (e) {
+            alert("Error al procesar la venta: " + e.message);
+        }
     }
+
+    document.getElementById('fecha-hoy').innerText = new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    cargarProductos();
 </script>
 </body>
 </html>
