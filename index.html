@@ -3,48 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Seguro - Ferretería</title>
+    <title>Inventario - Ferretería</title>
     <style>
-        /* Estilos de seguridad */
-        #pantalla-bloqueo {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #2c3e50; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10000; color: white;
-        }
-        .login-card { background: white; padding: 30px; border-radius: 10px; text-align: center; color: #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        #contenido-privado { display: none; } /* Oculto por defecto */
-        
-        /* Estilos del inventario (Mantenemos los anteriores mejorados) */
         :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .nav-menu { background: var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
+        .nav-menu a:hover { background: var(--secondary); }
+        
+        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         h1 { text-align: center; color: var(--primary); border-bottom: 4px solid var(--secondary); }
-        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #fdfdfd; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #fdfdfd; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
         button { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
         .btn-add { background: var(--success); }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: var(--primary); color: white; padding: 12px; }
         td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
-        .resumen-financiero { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .card-total { padding: 20px; border-radius: 10px; color: white; text-align: right; }
+        .resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .card { padding: 15px; border-radius: 10px; color: white; text-align: right; }
     </style>
 </head>
 <body>
 
-<div id="pantalla-bloqueo">
-    <div class="login-card">
-        <h2>🔒 Acceso Restringido</h2>
-        <p>Ingresa la clave de la ferretería:</p>
-        <input type="password" id="pass-input" placeholder="Contraseña">
-        <br><br>
-        <button onclick="verificarClave()" style="background: #27ae60; width: 100%;">Entrar al Sistema</button>
-        <p id="error-msg" style="color: red; display: none; margin-top: 10px;">Clave incorrecta</p>
-    </div>
+<div class="nav-menu">
+    <a href="index.html">📦 INVENTARIO</a>
+    <a href="factura.html">📄 FACTURACIÓN</a>
 </div>
 
-<div id="contenido-privado" class="container">
-    <h1>🇨🇴 Inventario Ferretería (Protegido)</h1>
+<div class="container">
+    <h1>🇨🇴 Inventario Ferretería</h1>
     
     <div class="form-group">
         <input type="text" id="nombre" placeholder="Producto">
@@ -54,49 +42,26 @@
         <button class="btn-add" onclick="agregarProducto()">+ Registrar</button>
     </div>
 
-    <input type="text" id="buscador" style="width:100%; padding:10px; margin-bottom:10px;" placeholder="🔍 Buscar..." onkeyup="mostrarInventario()">
+    <input type="text" id="buscador" style="width:100%; padding:10px; margin-bottom:10px; box-sizing: border-box;" placeholder="🔍 Buscar producto..." onkeyup="mostrarInventario()">
 
     <div style="overflow-x: auto;">
         <table>
             <thead>
                 <tr>
-                    <th>#</th><th>Producto</th><th>Stock</th><th>Compra</th><th>Venta</th><th>Ganancia Un.</th><th>Acciones</th>
+                    <th>#</th><th>Producto</th><th>Stock</th><th>Compra</th><th>Venta</th><th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="lista-inventario"></tbody>
         </table>
     </div>
 
-    <div class="resumen-financiero">
-        <div class="card-total" style="background: #2c3e50;">
-            <small>Inversión</small>
-            <div id="total-inversion">$0</div>
-        </div>
-        <div class="card-total" style="background: #27ae60;">
-            <small>Ganancia Esperada</small>
-            <div id="total-utilidad">$0</div>
-        </div>
+    <div class="resumen">
+        <div class="card" style="background: #2c3e50;"><small>Inversión Total</small><div id="total-inv">$ 0</div></div>
+        <div class="card" style="background: #27ae60;"><small>Utilidad Esperada</small><div id="total-util">$ 0</div></div>
     </div>
-    <br>
-    <button onclick="exportarCSV()" style="background: #2980b9;">📥 Descargar Copia Excel</button>
 </div>
 
 <script>
-    // --- CONFIGURACIÓN DE SEGURIDAD ---
-    const CLAVE_ACCESO = "1234"; // CAMBIA ESTO POR TU CLAVE PROPIA
-
-    function verificarClave() {
-        const input = document.getElementById('pass-input').value;
-        if(input === CLAVE_ACCESO) {
-            document.getElementById('pantalla-bloqueo').style.display = 'none';
-            document.getElementById('contenido-privado').style.display = 'block';
-            mostrarInventario();
-        } else {
-            document.getElementById('error-msg').style.display = 'block';
-        }
-    }
-
-    // --- LÓGICA DEL INVENTARIO ---
     const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
     function agregarProducto() {
@@ -105,11 +70,11 @@
         const p_c = parseFloat(document.getElementById('precio_c').value);
         const p_v = parseFloat(document.getElementById('precio_v').value);
 
-        if(nombre && cant >= 0) {
+        if(nombre && !isNaN(cant)) {
             const inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
             inv.push({ id: Date.now(), nombre, cant, p_c, p_v });
             localStorage.setItem('ferre_secure', JSON.stringify(inv));
-            limpiar();
+            document.querySelectorAll('input').forEach(i => i.value = '');
             mostrarInventario();
         }
     }
@@ -122,36 +87,39 @@
         let t_inv = 0; let t_util = 0;
 
         inv.filter(p => p.nombre.toLowerCase().includes(filtro)).forEach((p, i) => {
-            const util = p.p_v - p_c;
             t_inv += (p.cant * p.p_c);
             t_util += (p.cant * (p.p_v - p.p_c));
-            
-            lista.innerHTML += `
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${p.nombre}</td>
-                    <td>${p.cant}</td>
-                    <td>${formatoCOP.format(p.p_c)}</td>
-                    <td>${formatoCOP.format(p.p_v)}</td>
-                    <td style="color:green; font-weight:bold">${formatoCOP.format(p.p_v - p.p_c)}</td>
-                    <td>
-                        <button onclick="ajustar(${p.id}, 1)" style="background:green">+</button>
-                        <button onclick="ajustar(${p.id}, -1)" style="background:orange">-</button>
-                    </td>
-                </tr>`;
+            lista.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td><strong>${p.nombre}</strong></td>
+                <td>${p.cant}</td>
+                <td>${formatoCOP.format(p.p_c)}</td>
+                <td>${formatoCOP.format(p.p_v)}</td>
+                <td>
+                    <button onclick="ajustar(${p.id}, 1)" style="background:green; color:white; padding:5px">+</button>
+                    <button onclick="ajustar(${p.id}, -1)" style="background:orange; color:white; padding:5px">-</button>
+                    <button onclick="eliminar(${p.id})" style="background:red; color:white; padding:5px">🗑️</button>
+                </td>
+            </tr>`;
         });
-        document.getElementById('total-inversion').innerText = formatoCOP.format(t_inv);
-        document.getElementById('total-utilidad').innerText = formatoCOP.format(t_util);
+        document.getElementById('total-inv').innerText = formatoCOP.format(t_inv);
+        document.getElementById('total-util').innerText = formatoCOP.format(t_util);
     }
 
-    function ajustar(id, num) {
+    function ajustar(id, n) {
         let inv = JSON.parse(localStorage.getItem('ferre_secure'));
         const p = inv.find(x => x.id === id);
-        if(p.cant + num >= 0) { p.cant += num; localStorage.setItem('ferre_secure', JSON.stringify(inv)); mostrarInventario(); }
+        if(p.cant + n >= 0) { p.cant += n; localStorage.setItem('ferre_secure', JSON.stringify(inv)); mostrarInventario(); }
     }
 
-    function limpiar() { document.querySelectorAll('input').forEach(i => i.value = ''); }
+    function eliminar(id) {
+        if(confirm("¿Eliminar producto?")) {
+            let inv = JSON.parse(localStorage.getItem('ferre_secure')).filter(x => x.id !== id);
+            localStorage.setItem('ferre_secure', JSON.stringify(inv));
+            mostrarInventario();
+        }
+    }
+    window.onload = mostrarInventario;
 </script>
 </body>
 </html>
-
