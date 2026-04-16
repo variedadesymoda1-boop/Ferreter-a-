@@ -3,73 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario - Ferretería</title>
+    <title>Inventario Protegido - Ferretería</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 0; }
+        
+        /* Pantalla de Bloqueo */
+        #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; color: #333; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        
+        /* Menú y Contenido */
+        #contenido-sistema { display: none; padding: 20px; }
         .nav-menu { background: var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
         .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
         .nav-menu a:hover { background: var(--secondary); }
         
-        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: var(--primary); border-bottom: 4px solid var(--secondary); }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h1, h2 { color: var(--primary); border-bottom: 3px solid var(--secondary); padding-bottom: 5px; }
         .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #fdfdfd; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
-        button { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-add { background: var(--success); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: var(--primary); color: white; padding: 12px; }
-        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
-        .resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .card { padding: 15px; border-radius: 10px; color: white; text-align: right; }
+        button { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: var(--primary); color: white; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+        .status-pendiente { background: #fff3cd; color: #856404; padding: 5px; border-radius: 4px; font-weight: bold; }
+        .status-entregado { background: #d4edda; color: #155724; padding: 5px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="nav-menu">
-    <a href="index.html">📦 INVENTARIO</a>
-    <a href="factura.html">📄 FACTURACIÓN</a>
+<div id="bloqueo">
+    <div class="login-box">
+        <h2>🔒 Acceso al Sistema</h2>
+        <input type="password" id="clave-input" placeholder="Ingresa la clave">
+        <br><br>
+        <button style="background: var(--success); width: 100%;" onclick="validarClave()">Entrar</button>
+        <p id="error" style="color: red; display: none;">Clave incorrecta</p>
+    </div>
 </div>
 
-<div class="container">
-    <h1>🇨🇴 Inventario Ferretería</h1>
-    
-    <div class="form-group">
-        <input type="text" id="nombre" placeholder="Producto">
-        <input type="number" id="cantidad" placeholder="Cant.">
-        <input type="number" id="precio_c" placeholder="Compra ($)">
-        <input type="number" id="precio_v" placeholder="Venta ($)">
-        <button class="btn-add" onclick="agregarProducto()">+ Registrar</button>
+<div id="contenido-sistema">
+    <div class="nav-menu">
+        <a href="index.html">📦 INVENTARIO</a>
+        <a href="factura.html">📄 FACTURACIÓN</a>
     </div>
 
-    <input type="text" id="buscador" style="width:100%; padding:10px; margin-bottom:10px; box-sizing: border-box;" placeholder="🔍 Buscar producto..." onkeyup="mostrarInventario()">
-
-    <div style="overflow-x: auto;">
+    <div class="container">
+        <h1>📦 Gestión de Inventario</h1>
+        <div class="form-group">
+            <input type="text" id="nombre" placeholder="Producto">
+            <input type="number" id="cantidad" placeholder="Cant.">
+            <input type="number" id="precio_c" placeholder="Compra ($)">
+            <input type="number" id="precio_v" placeholder="Venta ($)">
+            <button style="background: var(--success);" onclick="agregarProducto()">+ Registrar</button>
+        </div>
+        <input type="text" id="buscador" style="width:100%; padding:10px; box-sizing: border-box;" placeholder="🔍 Buscar..." onkeyup="mostrarInventario()">
         <table>
-            <thead>
-                <tr>
-                    <th>#</th><th>Producto</th><th>Stock</th><th>Compra</th><th>Venta</th><th>Acciones</th>
-                </tr>
-            </thead>
+            <thead><tr><th>#</th><th>Producto</th><th>Stock</th><th>Compra</th><th>Venta</th><th>Acciones</th></tr></thead>
             <tbody id="lista-inventario"></tbody>
         </table>
     </div>
 
-    <div class="resumen">
-        <div class="card" style="background: #2c3e50;"><small>Inversión Total</small><div id="total-inv">$ 0</div></div>
-        <div class="card" style="background: #27ae60;"><small>Utilidad Esperada</small><div id="total-util">$ 0</div></div>
+    <div class="container">
+        <h2>🚚 Registro de Entregas y Ventas</h2>
+        <table style="font-size: 14px;">
+            <thead><tr><th>Cliente</th><th>Celular</th><th>Dirección</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody id="lista-ventas"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
+    const CLAVE_MAESTRA = "ferreteria/distri$34";
     const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+    function validarClave() {
+        if(document.getElementById('clave-input').value === CLAVE_MAESTRA) {
+            document.getElementById('bloqueo').style.display = 'none';
+            document.getElementById('contenido-sistema').style.display = 'block';
+            mostrarInventario();
+        } else {
+            document.getElementById('error').style.display = 'block';
+        }
+    }
 
     function agregarProducto() {
         const nombre = document.getElementById('nombre').value;
         const cant = parseInt(document.getElementById('cantidad').value);
         const p_c = parseFloat(document.getElementById('precio_c').value);
         const p_v = parseFloat(document.getElementById('precio_v').value);
-
         if(nombre && !isNaN(cant)) {
             const inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
             inv.push({ id: Date.now(), nombre, cant, p_c, p_v });
@@ -84,42 +106,39 @@
         const filtro = document.getElementById('buscador').value.toLowerCase();
         let inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
         lista.innerHTML = '';
-        let t_inv = 0; let t_util = 0;
-
         inv.filter(p => p.nombre.toLowerCase().includes(filtro)).forEach((p, i) => {
-            t_inv += (p.cant * p.p_c);
-            t_util += (p.cant * (p.p_v - p.p_c));
-            lista.innerHTML += `<tr>
-                <td>${i+1}</td>
-                <td><strong>${p.nombre}</strong></td>
-                <td>${p.cant}</td>
-                <td>${formatoCOP.format(p.p_c)}</td>
-                <td>${formatoCOP.format(p.p_v)}</td>
-                <td>
-                    <button onclick="ajustar(${p.id}, 1)" style="background:green; color:white; padding:5px">+</button>
-                    <button onclick="ajustar(${p.id}, -1)" style="background:orange; color:white; padding:5px">-</button>
-                    <button onclick="eliminar(${p.id})" style="background:red; color:white; padding:5px">🗑️</button>
-                </td>
-            </tr>`;
+            lista.innerHTML += `<tr><td>${i+1}</td><td>${p.nombre}</td><td>${p.cant}</td><td>${formatoCOP.format(p.p_c)}</td><td>${formatoCOP.format(p.p_v)}</td>
+            <td><button onclick="eliminar(${p.id})" style="background:var(--danger)">🗑️</button></td></tr>`;
         });
-        document.getElementById('total-inv').innerText = formatoCOP.format(t_inv);
-        document.getElementById('total-util').innerText = formatoCOP.format(t_util);
+        mostrarVentas();
     }
 
-    function ajustar(id, n) {
-        let inv = JSON.parse(localStorage.getItem('ferre_secure'));
-        const p = inv.find(x => x.id === id);
-        if(p.cant + n >= 0) { p.cant += n; localStorage.setItem('ferre_secure', JSON.stringify(inv)); mostrarInventario(); }
+    function mostrarVentas() {
+        const listaVentas = document.getElementById('lista-ventas');
+        let ventas = JSON.parse(localStorage.getItem('ferre_ventas')) || [];
+        listaVentas.innerHTML = '';
+        ventas.forEach((v, index) => {
+            const clase = v.estado === 'Pendiente' ? 'status-pendiente' : 'status-entregado';
+            listaVentas.innerHTML += `<tr>
+                <td>${v.cliente}</td><td>${v.celular}</td><td>${v.direccion}</td>
+                <td><span class="${clase}">${v.estado}</span></td>
+                <td><button onclick="cambiarEstadoVenta(${index})" style="background:var(--primary); font-size:10px">Cambiar</button></td>
+            </tr>`;
+        });
+    }
+
+    function cambiarEstadoVenta(index) {
+        let ventas = JSON.parse(localStorage.getItem('ferre_ventas'));
+        ventas[index].estado = ventas[index].estado === 'Pendiente' ? 'Entregado' : 'Pendiente';
+        localStorage.setItem('ferre_ventas', JSON.stringify(ventas));
+        mostrarVentas();
     }
 
     function eliminar(id) {
-        if(confirm("¿Eliminar producto?")) {
-            let inv = JSON.parse(localStorage.getItem('ferre_secure')).filter(x => x.id !== id);
-            localStorage.setItem('ferre_secure', JSON.stringify(inv));
-            mostrarInventario();
-        }
+        let inv = JSON.parse(localStorage.getItem('ferre_secure')).filter(x => x.id !== id);
+        localStorage.setItem('ferre_secure', JSON.stringify(inv));
+        mostrarInventario();
     }
-    window.onload = mostrarInventario;
 </script>
 </body>
 </html>
