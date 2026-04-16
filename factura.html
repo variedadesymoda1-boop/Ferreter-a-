@@ -3,78 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factura Protegida - Ferretería</title>
+    <title>Facturación - Ferretería</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #2c3e50; --secondary: #f39c12; --success: #27ae60; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; margin: 0; padding: 0; }
+        
+        /* Bloqueo */
         #bloqueo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         #contenido-sistema { display: none; padding: 20px; }
-        .nav-menu { background: var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+
+        .nav-menu { background: var(--primary); padding: 15px; text-align: center; margin-bottom: 20px; }
         .nav-menu a { color: white; text-decoration: none; font-weight: bold; margin: 0 15px; padding: 8px 15px; border-radius: 5px; background: rgba(255,255,255,0.1); }
+        
         .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        
+        /* Estilo de la Factura */
+        #area-factura { padding: 20px; border: 1px solid #eee; }
+        .header-factura { border-bottom: 2px solid var(--primary); margin-bottom: 20px; padding-bottom: 10px; }
+        
         .grid-cliente { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; box-sizing: border-box; }
-        @media print { .no-print, .nav-menu { display: none; } }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8f9fa; padding: 10px; border: 1px solid #ddd; text-align: left; }
+        td { padding: 10px; border: 1px solid #ddd; }
+
+        .total-box { background: var(--primary); color: white; padding: 15px; text-align: right; margin-top: 20px; border-radius: 8px; }
+        
+        .botones-accion { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
+        
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
 
 <div id="bloqueo">
     <div style="background:white; padding:30px; border-radius:12px; color:#333; text-align:center;">
-        <h2>🔒 Seguridad Facturación</h2>
-        <input type="password" id="clave-input" placeholder="Ingresa la clave">
-        <br><br>
-        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:10px; width:100%; border-radius:5px; font-weight:bold;">Entrar</button>
+        <h2>🔒 Seguridad</h2>
+        <input type="password" id="clave-input" placeholder="Clave">
+        <button onclick="validarClave()" style="background:var(--success); color:white; border:none; padding:10px; margin-top:10px; width:100%; border-radius:5px;">Entrar</button>
     </div>
 </div>
 
 <div id="contenido-sistema">
-    <div class="nav-menu">
+    <div class="nav-menu no-print">
         <a href="index.html">📦 INVENTARIO</a>
         <a href="factura.html">📄 FACTURACIÓN</a>
     </div>
 
     <div class="container">
-        <h1 style="text-align:center">📄 Factura de Venta</h1>
         <div class="no-print">
             <div class="grid-cliente">
-                <input type="text" id="cliente" placeholder="Nombre del Cliente">
-                <input type="text" id="celular" placeholder="Celular">
-                <input type="text" id="direccion" placeholder="Dirección">
-                <select id="estado"><option value="Entregado">Entregado ✅</option><option value="Pendiente">Pendiente ⏳</option></select>
+                <input type="text" id="c_nombre" placeholder="Nombre Cliente">
+                <input type="text" id="c_celular" placeholder="Celular">
+                <input type="text" id="c_dir" placeholder="Dirección">
+                <select id="c_estado"><option value="Entregado">Entregado ✅</option><option value="Pendiente">Pendiente ⏳</option></select>
             </div>
-            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px">
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:5px">
                 <input type="text" id="p_nombre" placeholder="Producto" list="lista_prod">
                 <datalist id="lista_prod"></datalist>
                 <input type="number" id="p_cant" placeholder="Cant" value="1">
-                <input type="number" id="p_venta" placeholder="Precio">
-                <button onclick="agregar()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:5px;">+</button>
+                <input type="number" id="p_precio" placeholder="Precio">
+                <button onclick="agregarItem()" style="background:var(--success); color:white; border:none; border-radius:5px; padding:10px">+</button>
             </div>
         </div>
-        <table style="width:100%; border-collapse: collapse; margin-top:20px;">
-            <thead><tr style="background:#eee"><th>Cant</th><th>Descripción</th><th>Total</th></tr></thead>
-            <tbody id="cuerpo"></tbody>
-        </table>
-        <div style="background:var(--primary); color:white; padding:20px; text-align:right; margin-top:20px; border-radius:8px;">
-            <div id="gran-total" style="font-size: 2em; font-weight: bold;">$ 0</div>
+
+        <div id="area-factura">
+            <div class="header-factura">
+                <h2 style="margin:0; color:var(--primary)">FERRETERÍA / DISTRI</h2>
+                <p style="margin:5px 0" id="f-fecha"></p>
+            </div>
+            
+            <div id="datos-cliente-ver">
+                <p><b>Cliente:</b> <span id="v-nombre"></span> | <b>Tel:</b> <span id="v-celular"></span></p>
+                <p><b>Dirección:</b> <span id="v-dir"></span></p>
+            </div>
+
+            <table>
+                <thead><tr><th>Cant</th><th>Descripción</th><th>Precio</th><th>Total</th></tr></thead>
+                <tbody id="tabla-cuerpo"></tbody>
+            </table>
+
+            <div class="total-box">
+                <span style="font-size:1.2em">TOTAL A PAGAR:</span><br>
+                <span id="v-total" style="font-size:2em; font-weight:bold">$ 0</span>
+            </div>
         </div>
-        <button onclick="guardarYImprimir()" style="width:100%; background:var(--primary); color:white; padding:15px; border:none; border-radius:8px; margin-top:15px;" class="no-print">🖨️ IMPRIMIR FACTURA</button>
+
+        <div class="botones-accion no-print">
+            <button class="btn" style="background:var(--primary)" onclick="guardarYDescargarPDF()">📥 Descargar PDF y Guardar</button>
+            <button class="btn" style="background:var(--secondary)" onclick="window.print()">🖨️ Solo Imprimir</button>
+        </div>
     </div>
 </div>
 
 <script>
     const CLAVE_MAESTRA = "ferreteria/distri$34";
+    const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+    let facturaItems = [];
+
     function validarClave() {
         if(document.getElementById('clave-input').value === CLAVE_MAESTRA) {
             document.getElementById('bloqueo').style.display = 'none';
             document.getElementById('contenido-sistema').style.display = 'block';
-        } else { alert("Clave incorrecta"); }
+            cargarSugerencias();
+        }
     }
 
-    let factura = [];
-    const formatoCOP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-
-    window.onload = () => {
+    function cargarSugerencias() {
         const inv = JSON.parse(localStorage.getItem('ferre_secure')) || [];
         const list = document.getElementById('lista_prod');
         inv.forEach(p => {
@@ -82,44 +120,73 @@
             op.value = p.nombre; op.dataset.precio = p.p_v;
             list.appendChild(op);
         });
-    };
+    }
 
     document.getElementById('p_nombre').addEventListener('input', (e) => {
         const op = Array.from(document.getElementById('lista_prod').options).find(o => o.value === e.target.value);
-        if(op) document.getElementById('p_venta').value = op.dataset.precio;
+        if(op) document.getElementById('p_precio').value = op.dataset.precio;
     });
 
-    function agregar() {
+    function agregarItem() {
         const n = document.getElementById('p_nombre').value;
         const c = parseInt(document.getElementById('p_cant').value);
-        const v = parseFloat(document.getElementById('p_venta').value);
-        if(n && c > 0) { factura.push({n, c, v}); dibujar(); }
+        const p = parseFloat(document.getElementById('p_precio').value);
+        if(n && c > 0) {
+            facturaItems.push({n, c, p});
+            actualizarVista();
+            document.getElementById('p_nombre').value = '';
+            document.getElementById('p_precio').value = '';
+        }
     }
 
-    function dibujar() {
-        const t = document.getElementById('cuerpo');
-        t.innerHTML = ''; let suma = 0;
-        factura.forEach(p => {
-            suma += (p.c * p.v);
-            t.innerHTML += `<tr><td>${p.c}</td><td>${p.n}</td><td>${formatoCOP.format(p.c*p.v)}</td></tr>`;
+    function actualizarVista() {
+        const cuerpo = document.getElementById('tabla-cuerpo');
+        cuerpo.innerHTML = ''; let total = 0;
+        
+        document.getElementById('v-nombre').innerText = document.getElementById('c_nombre').value;
+        document.getElementById('v-celular').innerText = document.getElementById('c_celular').value;
+        document.getElementById('v-dir').innerText = document.getElementById('c_dir').value;
+        document.getElementById('f-fecha').innerText = "Fecha: " + new Date().toLocaleString();
+
+        facturaItems.forEach(item => {
+            const sub = item.c * item.p; total += sub;
+            cuerpo.innerHTML += `<tr><td>${item.c}</td><td>${item.n}</td><td>${formatoCOP.format(item.p)}</td><td>${formatoCOP.format(sub)}</td></tr>`;
         });
-        document.getElementById('gran-total').innerText = formatoCOP.format(suma);
-        window.total = suma;
+        document.getElementById('v-total').innerText = formatoCOP.format(total);
+        window.totalVenta = total;
     }
 
-    function guardarYImprimir() {
+    function guardarYDescargarPDF() {
+        if(facturaItems.length === 0) return alert("Agregue productos primero");
+
+        // 1. Guardar en historial
         const venta = {
-            cliente: document.getElementById('cliente').value,
-            celular: document.getElementById('celular').value,
-            direccion: document.getElementById('direccion').value,
-            estado: document.getElementById('estado').value,
-            total: window.total,
-            fecha: new Date().toLocaleDateString()
+            cliente: document.getElementById('c_nombre').value || "Cliente General",
+            celular: document.getElementById('c_celular').value,
+            direccion: document.getElementById('c_dir').value,
+            estado: document.getElementById('c_estado').value,
+            productos: facturaItems,
+            total: window.totalVenta,
+            fecha: new Date().toLocaleString()
         };
         let ventas = JSON.parse(localStorage.getItem('ferre_ventas')) || [];
         ventas.push(venta);
         localStorage.setItem('ferre_ventas', JSON.stringify(ventas));
-        window.print();
+
+        // 2. Generar PDF
+        const elementoFactura = document.getElementById('area-factura');
+        const opciones = {
+            margin: 1,
+            filename: `Factura_${venta.cliente}_${new Date().getTime()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opciones).from(elementoFactura).save().then(() => {
+            alert("Factura guardada y PDF descargado");
+            location.reload(); // Limpiar todo
+        });
     }
 </script>
 </body>
