@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facturación Barzalosa - Historial Cloud</title>
+    <title>Facturación Barzalosa - Control Total</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
@@ -35,12 +35,13 @@
         .caja-pago { background: #fdfdfd; padding: 15px; border-radius: 10px; border-top: 3px solid var(--primary); margin-top: 20px; text-align: right; }
         .total-final { font-size: 2.2em; font-weight: bold; color: var(--primary); margin-bottom: 10px; }
 
-        .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; margin-top: 20px; }
+        .btn-venta { background: var(--success); color: white; border: none; padding: 18px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.2em; margin-top: 20px; transition: 0.3s; }
 
-        /* SECCIÓN HISTORIAL */
+        /* HISTORIAL MEJORADO */
         .historial-section { max-width: 850px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; }
-        .item-venta { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9em; }
-        .btn-ver { background: var(--accent); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .item-venta { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .btn-ver { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-borrar-hist { background: var(--danger); color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px; }
 
         @media print {
             .nav-menu, .no-print, .btn-venta, .acciones-print, .btn-borrar, .btn-cant, .historial-section { display: none !important; }
@@ -68,6 +69,7 @@
     </div>
 
     <div class="no-print">
+        <input type="hidden" id="edit-venta-id">
         <div class="grid-cliente">
             <div><label>Cliente:</label><input type="text" id="cli" onkeyup="actualizarVista()"></div>
             <div><label>Celular:</label><input type="text" id="tel" onkeyup="actualizarVista()"></div>
@@ -92,7 +94,7 @@
 
     <div id="datos-impresion" style="background:#f9f9f9; padding:10px; border-radius:8px;">
         <b>Cliente:</b> <span id="ver-cli">Mostrador</span> | <b>Tel:</b> <span id="ver-tel">N/A</span><br>
-        <b>Dir:</b> <span id="ver-dir">N/A</span> | <b>Estado:</b> <span id="ver-estado" style="color:red;">PENDIENTE</span><br>
+        <b>Dir:</b> <span id="ver-dir">N/A</span> | <b>Estado:</b> <span id="ver-estado" style="color:red; font-weight: bold;">PENDIENTE</span><br>
         <span id="ver-fecha-label"><b>Fecha Pedido:</b></span> <span id="ver-fecha-valor"></span>
     </div>
 
@@ -107,13 +109,13 @@
         <div class="cambio-text">CAMBIO: <span id="cambio-html">$ 0</span></div>
     </div>
     
-    <button class="btn-venta no-print" onclick="registrarVentaEnNube()">✅ GUARDAR Y FINALIZAR</button>
+    <button id="btn-principal" class="btn-venta no-print" onclick="registrarOActualizarVenta()">✅ GUARDAR Y FINALIZAR</button>
 </div>
 
 <div class="historial-section no-print">
-    <h3>📂 Historial de Facturas</h3>
+    <h3>📂 Historial de Facturas (Buscar / Editar / Borrar)</h3>
     <div class="grid-cliente">
-        <input type="text" id="bus-cli" placeholder="Buscar por Nombre..." onkeyup="cargarHistorial()">
+        <input type="text" id="bus-cli" placeholder="Nombre del cliente..." onkeyup="cargarHistorial()">
         <input type="date" id="bus-fecha" onchange="cargarHistorial()">
     </div>
     <div id="lista-historial" style="margin-top:10px;"></div>
@@ -149,21 +151,20 @@
 
     function cargarHistorial() {
         const busNombre = document.getElementById('bus-cli').value.toLowerCase();
-        const busFecha = document.getElementById('bus-fecha').value; // Formato YYYY-MM-DD
-        
-        db.collection("ventas").orderBy("fecha_raw", "desc").limit(20).onSnapshot(snap => {
+        const busFecha = document.getElementById('bus-fecha').value;
+        db.collection("ventas").orderBy("fecha_raw", "desc").limit(30).onSnapshot(snap => {
             const lista = document.getElementById('lista-historial');
             lista.innerHTML = "";
             snap.forEach(doc => {
                 const v = doc.data();
-                const cumpleNombre = v.cliente.toLowerCase().includes(busNombre);
-                const cumpleFecha = busFecha ? v.fecha_raw.startsWith(busFecha) : true;
-
-                if(cumpleNombre && cumpleFecha) {
+                if(v.cliente.toLowerCase().includes(busNombre) && (busFecha ? v.fecha_raw === busFecha : true)) {
                     lista.innerHTML += `
                         <div class="item-venta">
                             <div><b>${v.fecha_pedido}</b> - ${v.cliente} (${formato.format(v.total)})</div>
-                            <button class="btn-ver" onclick="verFacturaVieja('${doc.id}')">Ver Factura</button>
+                            <div>
+                                <button class="btn-ver" onclick="verFacturaVieja('${doc.id}')">Ver/Editar</button>
+                                <button class="btn-borrar-hist" onclick="borrarFactura('${doc.id}')">🗑️</button>
+                            </div>
                         </div>`;
                 }
             });
@@ -173,14 +174,23 @@
     async function verFacturaVieja(id) {
         const doc = await db.collection("ventas").doc(id).get();
         const v = doc.data();
+        document.getElementById('edit-venta-id').value = id;
         document.getElementById('cli').value = v.cliente;
         document.getElementById('tel').value = v.telefono;
         document.getElementById('dir').value = v.direccion;
         document.getElementById('estado').value = v.estado;
+        document.getElementById('fecha-entrega-val').value = v.fecha_entrega || "";
         carrito = v.items;
-        actualizarVista();
-        dibujarTabla();
-        window.scrollTo(0,0);
+        document.getElementById('btn-principal').innerText = "💾 ACTUALIZAR FACTURA GUARDADA";
+        document.getElementById('btn-principal').style.background = "var(--accent)";
+        toggleFechaEntrega(); actualizarVista(); dibujarTabla(); window.scrollTo(0,0);
+    }
+
+    async function borrarFactura(id) {
+        if(confirm("¿Seguro que desea ELIMINAR esta factura para siempre?")) {
+            await db.collection("ventas").doc(id).delete();
+            alert("Factura eliminada.");
+        }
     }
 
     function toggleFechaEntrega() { document.getElementById('wrap-fecha-entrega').style.display = (document.getElementById('estado').value === 'Entregado') ? 'block' : 'none'; actualizarVista(); }
@@ -192,7 +202,7 @@
         const est = document.getElementById('estado').value;
         const vEst = document.getElementById('ver-estado'); vEst.innerText = est.toUpperCase();
         vEst.style.color = (est === 'Entregado') ? 'green' : 'red';
-        document.getElementById('ver-fecha-valor').innerText = (est === 'Entregado') ? document.getElementById('fecha-entrega-val').value : fechaHoy;
+        document.getElementById('ver-fecha-valor').innerText = (est === 'Entregado') ? (document.getElementById('fecha-entrega-val').value || "---") : fechaHoy;
     }
 
     function agregarAlCarrito() {
@@ -222,22 +232,31 @@
         document.getElementById('cambio-html').innerText = formato.format(Math.max(0, p - totalFactura));
     }
 
-    async function registrarVentaEnNube() {
-        if(carrito.length === 0) return alert("Vacio");
-        const fRaw = new Date().toISOString().split('T')[0]; // YYYY-MM-DD para buscar
+    async function registrarOActualizarVenta() {
+        if(carrito.length === 0) return alert("Factura vacía");
+        const idEdit = document.getElementById('edit-venta-id').value;
+        const fRaw = new Date().toISOString().split('T')[0];
+        const datos = {
+            cliente: document.getElementById('cli').value || "Mostrador",
+            telefono: document.getElementById('tel').value || "",
+            direccion: document.getElementById('dir').value || "",
+            estado: document.getElementById('estado').value,
+            fecha_pedido: fechaHoy,
+            fecha_raw: fRaw,
+            fecha_entrega: document.getElementById('fecha-entrega-val').value || "",
+            total: totalFactura,
+            items: carrito
+        };
         try {
-            await db.collection("ventas").add({
-                cliente: document.getElementById('cli').value || "Mostrador",
-                telefono: document.getElementById('tel').value || "",
-                direccion: document.getElementById('dir').value || "",
-                estado: document.getElementById('estado').value,
-                fecha_pedido: fechaHoy,
-                fecha_raw: fRaw,
-                total: totalFactura,
-                items: carrito
-            });
-            for(const i of carrito) { const r = db.collection("productos").doc(i.id); const s = await r.get(); await r.update({cant: s.data().cant - i.cantidad}); }
-            alert("✅ Guardado"); location.reload();
+            if(idEdit) {
+                await db.collection("ventas").doc(idEdit).update(datos);
+                alert("✅ Factura Actualizada");
+            } else {
+                await db.collection("ventas").add(datos);
+                for(const i of carrito) { const r = db.collection("productos").doc(i.id); const s = await r.get(); await r.update({cant: s.data().cant - i.cantidad}); }
+                alert("✅ Factura Guardada");
+            }
+            location.reload();
         } catch(e) { alert("Error"); }
     }
     document.getElementById('fecha-actual').innerText = fechaHoy;
